@@ -1,0 +1,257 @@
+# Lantern — design spec (2026-09-11)
+
+A private, ad-free media shelf for a four-year-old: audio tales, cartoons and illustrated
+books, on an iPad, with only parent-approved content. Grew out of the Hobbit illustrated
+reader (2026-08/09), which becomes the first book package.
+
+Personal project. Lives next to `life`, not in `sidequest-party` (no revenue goal). Code on
+`github.com/askolesov/lantern`; content in a folder that is never in git.
+
+## 1. Goals and non-goals
+
+Goals
+- The child navigates by pictures alone and picks what to listen to, watch or read.
+- Adding content never touches code: drop a folder, sync, reload.
+- One binary, one image, no database, no accounts, no state on the server.
+- Works on iPad Safari at home (LAN) and away (Tailscale). Nothing public.
+
+Non-goals (for now)
+- Audio + timed picture slideshow (recognise speech → timestamps → generated pictures).
+  Planned as a fourth node type later; the tree model must not block it.
+- Learning content (letters, numbers). Same: a future node type.
+- Parental controls, time limits, profiles, search. The whitelist is the filter; time is
+  Guided Access / Screen Time on the tablet.
+- Public hosting, Google indexing, copyright review. Content is private copies.
+
+## 2. Content model — the tree
+
+The content root is a directory. **A node is a directory that contains `node.yaml`.**
+Directories without `node.yaml` are invisible to the scanner (used for `src/`, scratch).
+
+Everything is explicit; one way to do one thing:
+- type is declared in `node.yaml`, never inferred from the parent folder or extension;
+- there are no implicit leaves (a bare `mp3` in a folder is ignored);
+- children order = natural sort of directory names (`01`, `02`, … `10`); no `order` field.
+  Want a different order → rename the directory;
+- cover is `cover.jpg` | `cover.png` | `cover.webp` next to `node.yaml` (first found wins),
+  required for every node including collections. Missing cover → `check` reports it and the
+  UI shows a title tile instead. Never a hard error;
+- a collection with a single child is not collapsed. A lone tale is a leaf without a wrapper.
+
+### 2.1 `node.yaml`
+
+Common header, all types:
+
+```yaml
+type: collection | audio | video | book
+title: Простоквашино
+hidden: false          # optional, default false — excluded from the UI, kept on disk
+```
+
+Type-specific tail:
+
+```yaml
+# audio / video
+file: 01-dyadya-fyodor.mp3   # relative to this dir; mp3/m4a for audio, mp4/webm for video
+source: https://…            # optional, provenance for the parent
+```
+
+```yaml
+# book
+text: book.json      # [{num, title, paras:[…]}] — the Hobbit reader's chapters.json format
+scenes: scenes.json  # [[{img, caption}, …], …] — one ordered list per chapter
+images: img          # dir holding chapter-N/<img>.jpg
+```
+
+`collection` has no tail; its children are the subdirectories that contain `node.yaml`.
+
+### 2.2 Example tree
+
+```
+content/
+  audio/                 node.yaml (collection) + cover.jpg
+    kolobok/             node.yaml (audio) + cover.jpg + kolobok.mp3
+    prostokvashino/      node.yaml (collection) + cover.jpg
+      01-dyadya-fyodor/  node.yaml (audio) + cover.jpg + 01.mp3
+      02-mitroshkin/
+  video/
+    nu-pogodi/
+      season-1/
+        01/              node.yaml (video) + cover.jpg + 01.mp4
+        02/
+  books/
+    hobbit/              node.yaml (book) + cover.jpg + book.json + scenes.json + img/
+      src/               NOT a node: python pipeline, full text, old pictures
+```
+
+### 2.3 Validation
+
+A broken node (yaml unparsable, unknown `type`, missing required field, referenced file
+absent, path escaping the node dir) is logged and skipped by the server; the rest of the
+tree still renders. `lantern check <dir>` runs the same scanner and prints every problem
+with its path, exit code 1 if any. It is run on the Mac before syncing.
+
+## 3. Screens
+
+Target: iPad Safari, portrait and landscape; also a phone. The child is four but fluent
+with devices: a children's UI, not a toddler's. Navigation is by covers; titles are small
+and for the parent. Visual design is done separately in Claude Design from this spec; the
+rules below are behaviour, not looks.
+
+### 3.1 Catalog (`collection`, including root)
+
+- Scrolling grid of cover tiles: 3–4 per row portrait, 5–6 landscape. Whole tile is the
+  link. Title under the tile, small.
+- Hidden nodes are omitted. A collection tile is visually distinguishable from a leaf
+  (stack/folder cue), left to design.
+- One large "back" control at top-left, absent on root. No breadcrumbs.
+
+### 3.2 Audio player (`audio`)
+
+- Cover large, title, then controls: previous, play/pause, next. Larger than adult
+  controls, not toddler-sized. Thin seek bar, tap to seek.
+- Previous/next = siblings in the same collection, in order. On `ended` → play next
+  sibling automatically; on the last one, stop.
+- Media Session API: cover, title, play/pause on the lock screen; audio continues with the
+  screen off.
+- Position saved to `localStorage` (key = node path) every few seconds; restored on open.
+  No "start over" control: seek to 0.
+
+### 3.3 Video player (`video`)
+
+- Native `<video controls playsinline>` with `poster` = cover. Safari's own controls.
+- Same sibling next/previous and autoplay-next as audio. No per-session cap.
+- Position saved/restored like audio.
+
+### 3.4 Book (`book`)
+
+- Opens on a chapter list: one tile per chapter, image = first scene of that chapter,
+  caption = chapter number and title. Picture navigation, same as the catalog.
+- Chapter page reproduces the current Hobbit reader layout exactly (see §5).
+- Last opened chapter saved to `localStorage`; the book tile in the catalog opens the
+  chapter list, not the chapter (the list is one tap away and shows where you are).
+
+### 3.5 Full screen
+
+Web app manifest + `apple-mobile-web-app-capable` so "Add to Home Screen" gives a
+chrome-less app. Locking the child in is Guided Access, not the app.
+
+## 4. Server
+
+- `lantern serve --content DIR --addr :8080` and `lantern check DIR`. Go, standard library
+  + `gopkg.in/yaml.v3`. Templates and static assets embedded (`embed`).
+- **Scan per request.** Every page request walks the tree, parses yaml, sorts. Hundreds of
+  nodes = milliseconds; no cache, no watcher, no restart to pick up new content. Add a cache
+  only if it measurably lags.
+- **Routes**
+  - `GET /` → root catalog.
+  - `GET /n/<path>` → node page by directory path from the content root (URL-encoded
+    segments). Renders catalog / audio / video / book-chapter-list by `type`.
+  - `GET /n/<path>/ch/<k>` → book chapter `k` (1-based).
+  - `GET /m/<path>/<file>` → media and covers from inside node `<path>`, served with
+    `http.ServeFile` (Range requests, needed for Safari seeking). The resolved path must
+    stay inside the node directory; otherwise 404.
+  - `GET /static/…` → embedded CSS/JS, `GET /manifest.webmanifest`.
+- Logging: one line per request (method, path, status, bytes, duration) to stdout.
+  Nothing else.
+- Errors: unknown path → 404 page in the same look; broken node → skipped (see §2.3).
+
+## 5. Book rendering — port of `build.py`, one to one
+
+Input: `book.json` chapters and `scenes.json` per chapter.
+
+1. **Paragraph splitting.** Paragraphs longer than 900 characters that contain no `\n`
+   are split at sentence boundaries (`(?<=[.!?…»])\s+`), greedily packing sentences up to
+   900 chars per piece. Paragraphs with `\n` (verse) are never split.
+2. **Placement.** For a chapter with `S` scenes and paragraphs `p_0…p_n`, let `cum_i` be
+   the character offset of `p_i` and `step = total_chars / (S − 0.5)`. For each scene
+   `k = 0…S−1` in order, target `k·step`; place it before the not-yet-taken paragraph
+   whose `cum_i` is closest to the target. First picture lands at the top, the last about
+   half a step before the end.
+3. **Figures.** Alternate `right` / `left` per figure, counted across the whole book
+   (global counter, starts with `right`). Caption under the picture. Missing image →
+   placeholder box, page still renders.
+4. **Verse.** A paragraph with `\n` and under 600 chars gets `class="verse"`; `\n` → `<br>`.
+5. **Chapter page chrome.** Chapter number line + title; bottom nav: previous chapter,
+   chapter list, next chapter (disabled at the ends). Reading column max 1280px, figures
+   58% wide floated with 32px gutter; under 760px figures are full width, not floated.
+   Fonts and colours are design's call, the structure is fixed.
+
+Verification of the port: render Hobbit chapter 1 with the Go server and with the old
+`build.py`; the sequence of (paragraph index → scene) must be identical.
+
+## 6. Repository and content layout
+
+```
+~/Documents/projects-my/lantern/            git, github.com/askolesov/lantern
+  cmd/lantern/                              main: serve, check
+  internal/catalog/                         scanner, node types, validation, sorting
+  internal/book/                            splitting + placement (§5), pure functions
+  internal/web/                             handlers, templates, static, manifest
+  tools/                                    package producers (generic only)
+    yt.sh <url> <dir>                       yt-dlp → video.mp4 (h264/aac ≤1080p, Safari-safe),
+                                            cover.jpg from thumbnail, node.yaml draft
+    audio.sh <file.mp3> <dir>               copies file, writes node.yaml draft
+    cover.py <dir> "<prompt>"               gpt-image-1 square cover, BASE_MID style;
+                                            key from life/dossiers/2026-08-local-ai-hardware/.env
+  deploy/                                   Dockerfile, k8s manifests (see §7)
+  testdata/content/                         small fixture tree for tests
+  docs/specs/, docs/plans/
+  Makefile                                  build, test, image, sync
+
+~/Documents/projects-my/lantern-content/    NOT git — source of truth AND the backup
+  audio/  video/  books/hobbit/…            the tree of §2
+```
+
+Hobbit migration: `~/Documents/projects-my/hobbit/` moves to
+`lantern-content/books/hobbit/`. Package files at the top (`node.yaml`, `cover.jpg`,
+`book.json`, `scenes.json`, `img/chapter-N/*.jpg`); everything else into `src/`
+(`condense.py`, `gen_images.py`, `shrink.py`, `chapters.full.json`, `scenes_*.py`, old
+`CLAUDE.md` and `README.md` with paths corrected, `img/_old`, the old `chapter-N.html` kept
+as the rendering reference until the port is verified, then deleted). `build.py` is
+replaced by `src/export.py`, which writes `book.json` (from `chapters.json` after
+`condense.py`) and `scenes.json` (the `scenes` dict). The Python is not generalised until
+a second book exists.
+
+`life/map.md`: the Hobbit line becomes a Lantern line (repo, content dir, cluster URL).
+
+## 7. Build, deploy, sync, access
+
+- **Image.** Multi-stage Dockerfile, final `FROM scratch` with the static binary.
+  GitHub Actions builds and pushes `ghcr.io/askolesov/lantern:<tag>` on a version tag.
+- **Cluster.** Namespace `lantern` on the existing single-node k3s (`sidequest-k3s`).
+  Deployment (1 replica, image tag pinned), Service, static `local-path` PV/PVC at
+  `/srv/lantern/content` on the node, Traefik IngressRoute `lantern.192-168-56-83.nip.io`.
+  Manifests in `deploy/k8s/`, applied with `kubectl apply -k deploy/k8s`. Not in
+  `gitops/deploy` and not an ArgoCD app: personal project, kept out of the product plane.
+- **Sync.** `make sync` = `rsync -av --delete lantern-content/ sidequest-k3s:/srv/lantern/content/`
+  after `lantern check`. The Mac folder is the master copy; the node has no other backup.
+- **Access away from home.** Tailscale on the iPad; the node is already on the tailnet
+  (`sidequest-exit`). Same LAN hostname resolves via Tailscale routing. No Cloudflare
+  Tunnel, no public hostname, no auth in the app.
+
+## 8. Testing
+
+- `internal/catalog`: scan `testdata/content` → expected tree; broken nodes (bad yaml,
+  unknown type, missing file, missing cover, path escape) are reported and skipped; natural
+  sort (`2` before `10`); `hidden` excluded from children but present in `check` output.
+- `internal/book`: splitting and placement as pure functions with table tests; a golden
+  test that reproduces `build.py`'s placement for Hobbit chapter 1 (fixture = its
+  `chapters.json` + scene list, expected = paragraph indices captured from `build.py`).
+- `internal/web`: `httptest` — root renders children; leaf pages by type; sibling
+  prev/next links; media served with `206` on a Range request; `../` in a media path → 404;
+  unknown node → 404; hidden node → 404.
+- `lantern check` exit codes on a clean and a broken fixture.
+- Manual on iPad after first deploy: seek in video, audio with screen locked, home-screen
+  app opens full screen, Tailscale from mobile data.
+
+## 9. Order of work (for the plan)
+
+1. Repo skeleton, `catalog` scanner + `check`, tests.
+2. `book` port + golden test against `build.py`.
+3. `web`: catalog, audio, video, book pages with plain templates; design from Claude Design
+   applied once it exists.
+4. Hobbit migration + `export.py`; run the port verification.
+5. Dockerfile, Actions, k8s manifests, first deploy, `make sync`.
+6. `tools/yt.sh`, `audio.sh`, `cover.py`; first cartoon and first audio tale.
+7. `life/map.md` line; GitHub repo pushed.
