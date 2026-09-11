@@ -14,3 +14,26 @@ one changes. No hidden memory: notes go here or in the spec.
 - `gofmt` + `go vet` + `go test ./...` before every commit. Templates and static assets are
   embedded; edit them under `internal/web/` and rebuild.
 - Commits: conventional prefixes (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
+
+## Shelf layout (user decision 2026-09-11)
+
+- `audio/`: **short stories grouped by author** (`nosov/`, `dragunsky/` — title = author's name);
+  **chapter books and series at the top level** (`neznajka/`, `karlson/`, `prostokvashino/` with one
+  sub-collection per book, `sobachka-sonya/` with its two books, …). A cycle of short stories about
+  one character (`kotenok-po-imeni-gav/`) is top-level too.
+- Chapter dirs are `NN-<slug>/`; the catalog draws the position badge on every tile whose dir name
+  starts with a digit, so chapters sharing one cover stay distinguishable (added 2026-09-11).
+- `books/hobbit/NN/` chapters 08–10 are `hidden: true` until they have pictures.
+
+## Operations
+
+- **Cluster**: ns `lantern` on the sidequest k3s, `KUBECONFIG=~/.kube/sidequest.yaml` (the Makefile
+  exports it). Image `ghcr.io/askolesov/lantern` is private → pulled with the `ghcr` secret copied
+  from ns `hestia`. New release = bump `newTag` in `deploy/k8s/kustomization.yaml`, tag `vX.Y.Z`,
+  push, wait for the `image` workflow, `make deploy`.
+- **Content**: `make sync` (rsync over SSH, key `~/.ssh/id_ed25519`, registered on the node
+  2026-09-11; rsync installed on the node the same day). `check` runs first and blocks on problems
+  outside hidden subtrees. Never `tar` from macOS without `COPYFILE_DISABLE=1` (it leaves `._*`
+  files on the volume).
+- Do not create pods that mount the content PVC as root except as a deliberate one-off; the app
+  mounts it read-only as uid 65534.

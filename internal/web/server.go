@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -122,6 +123,7 @@ type Tile struct {
 	Letter   string
 	Gradient int
 	Stack    bool
+	Num      int // 1-based position, shown as a badge when the dir name starts with a digit
 }
 
 type Track struct {
@@ -224,8 +226,12 @@ func (s *Server) node(w http.ResponseWriter, r *http.Request) {
 	}
 	switch n.Type {
 	case catalog.Collection:
-		for _, c := range n.Visible() {
-			pg.Tiles = append(pg.Tiles, tile(c))
+		for i, c := range n.Visible() {
+			t := tile(c)
+			if base := path.Base(c.Path); base != "" && base[0] >= '0' && base[0] <= '9' {
+				t.Num = i + 1
+			}
+			pg.Tiles = append(pg.Tiles, t)
 		}
 		s.render(w, "catalog.html", pg)
 	case catalog.Audio, catalog.Video:

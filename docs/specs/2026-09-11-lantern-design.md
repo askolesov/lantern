@@ -36,7 +36,9 @@ Everything is explicit; one way to do one thing:
 - cover is `cover.jpg` | `cover.png` | `cover.webp` next to `node.yaml` (first found wins),
   required for every node including collections. Missing cover → `check` reports it and the
   UI shows a title tile instead. Never a hard error;
-- a collection with a single child is not collapsed. A lone tale is a leaf without a wrapper.
+- a collection with a single child is not collapsed. A lone tale is a leaf without a wrapper;
+- shelf layout (2026-09-11): under `audio/`, short stories are grouped by author; chapter books
+  and series are top-level collections.
 
 ### 2.1 `node.yaml`
 
@@ -113,6 +115,9 @@ rules below are behaviour, not looks.
 - Hidden nodes are omitted. A collection tile is visually distinguishable from a leaf
   (stack/folder cue), left to design.
 - One large "back" control at top-left, absent on root. No breadcrumbs.
+- A tile whose directory name starts with a digit shows its 1-based position as a badge in the
+  tile's corner (added 2026-09-11): chapters of one book usually share a cover, and the badge is
+  how a non-reader tells them apart.
 
 ### 3.2 Audio player (`audio`)
 

@@ -89,6 +89,19 @@ func TestCollectionHidesHiddenAndHasBack(t *testing.T) {
 	}
 }
 
+func TestNumberedTiles(t *testing.T) {
+	ts := newTestServer(t)
+	_, body := get(t, ts, "/n/audio/prostokvashino")
+	nums := regexp.MustCompile(`<span class="num">(\d+)</span>`).FindAllStringSubmatch(body, -1)
+	if len(nums) != 3 || nums[0][1] != "1" || nums[2][1] != "3" {
+		t.Errorf("numbered dirs get position badges 1..3, got %v", nums)
+	}
+	_, body = get(t, ts, "/n/audio")
+	if strings.Contains(body, `class="num"`) {
+		t.Error("unnumbered dirs must not get a badge")
+	}
+}
+
 func TestAudioPlaylist(t *testing.T) {
 	ts := newTestServer(t)
 	_, body := get(t, ts, "/n/audio/prostokvashino/02-mitroshkin")

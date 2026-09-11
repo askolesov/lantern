@@ -28,7 +28,7 @@
 
 {{define "tiles"}}<div class="grid">
 {{range .Tiles}}<a class="tile{{if .Stack}} stack{{end}}" href="{{.URL}}">
-  <div class="art">{{template "cover" .}}</div>
+  <div class="art">{{template "cover" .}}{{if .Num}}<span class="num">{{.Num}}</span>{{end}}</div>
   <div class="cap">{{.Title}}</div>
 </a>
 {{end}}</div>{{end}}
