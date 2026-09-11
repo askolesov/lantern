@@ -234,7 +234,7 @@ SCENES = {
 
 def gen(name, prompt):
     ch, slug = name.split("_", 1)
-    out = pathlib.Path("img") / f"chapter-{int(ch)}" / f"{slug}.png"
+    out = pathlib.Path(f"{int(ch):02d}") / "img" / f"{slug}.png"  # chapter dir NN/img/
     out.parent.mkdir(parents=True, exist_ok=True)
     if out.exists():
         return name, "skip"

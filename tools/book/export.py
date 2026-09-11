@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Write scenes.json for the Hobbit package: one ordered [{img, caption}] list per chapter.
-Run from the package dir (lantern-content/books/hobbit). book.json is written by condense.py.
-The scene order/captions used to live in build.py; the HTML rendering moved to the Go server."""
-import json
+"""Split src/condensed.json (written by condense.py) into per-chapter story packages:
+  NN/node.yaml (only created if missing, so `hidden:` edits survive), NN/text.json, NN/scenes.json,
+  NN/cover.jpg (copied from the first scene if missing). Run from the package dir
+  (lantern-content/books/hobbit). The scene order/captions used to live in build.py."""
+import json, os, pathlib, shutil
 scenes={
 0:[("bagend","Норка Бильбо"),("hall","Внутри норки"),("hobbit_feet","Хоббит"),("bilbo_father","Родители Бильбо"),("bilbo_pipe","Бильбо пускает колечки дыма"),("gandalf_arrives","Гэндальф приходит в гости"),("gandalf_fireworks","Фейерверки Гэндальфа"),("scratch_door","Знак на двери"),("dwalin","Первый гость — Двалин"),("cakes","Кладовая пустеет"),("more_dwarves","Гномы валятся в дверь"),("dwarves_door","Гномы у круглой двери"),("thorin","Торин Дубощит"),("tea_party","Чаепитие с гномами"),("washing_up","Гномы моют посуду"),("pipes","Колечки дыма"),("dragon_song","Песня о драконе"),("bilbo_scared","Бильбо испугался"),("fireplace_talk","Разговор у камина"),("bilbo_burglar","«Я — взломщик!»"),("map","Карта Горы"),("lonely_mountain","Одинокая Гора и дракон"),("bilbo_bed","Бильбо засыпает")],
 1:[("messy_kitchen","Утро после гостей"),("note","Записка на камине"),("leaving","Бильбо бежит без шляпы"),("inn","Встреча в трактире"),("ponies","В путь на пони"),("green_hills","Зелёные холмы"),("rain","Дождь в дороге"),("wet_camp","Мокрая стоянка"),("fire_light","Огонёк в лесу"),("trolls","Три тролля у костра"),("bilbo_sneak","Бильбо крадётся"),("bilbo_purse","Говорящий кошелёк"),("troll_pocket","Тролль поймал хоббита"),("trolls_fight","Тролли дерутся"),("dwarves_sacks","Гномы в мешках"),("gandalf_voice","Тролли спорят до рассвета"),("dawn","Рассвет"),("stone_trolls","Тролли стали камнями"),("troll_cave","Пещера троллей"),("swords","Древние мечи"),("gold_pots","Клад под деревом")],
@@ -15,6 +16,16 @@ scenes={
 8:[('elf_line','Через мост'),('elvenking_hall','Зал Короля эльфов'),('questioning','Допрос'),('dwarves_cells','Гномы в темнице'),('bilbo_invisible','Бильбо-невидимка'),('bilbo_finds_thorin','Нашёл Торина'),('wine_cellar','Винный погреб'),('guards_drink','Стражники уснули'),('keys','Ключи'),('unlocking','Открываем двери'),('into_barrels','В бочки!'),('bombur_barrel','Бомбур в бочке'),('trapdoor','Люк открыт'),('bilbo_jump','Прыжок в воду'),('river_barrels','По реке'),('raft_elves','Плот из бочек'),('forest_ends','Лес кончился'),('mountain_view','Гора вдали'),('laketown_far','Озёрный город'),('bilbo_cold','Холодная ночь')],
 9:[('long_lake','Долгое озеро'),('laketown','Эсгарот'),('barrels_shore','Бочки на берегу'),('bilbo_opens','Бильбо открывает бочки'),('wet_dwarves','Мокрые гномы'),('bridge_guards','Стража у моста'),('master_feast','Пир у Бургомистра'),('town_cheers','Город ликует'),('old_songs','Старые песни'),('dwarves_fine','Новые наряды'),('bilbo_cold_town','Бильбо простудился'),('boats_loaded','Лодки готовы'),('departure','Отплытие'),('mountain_ahead','К Горе')],
 }
-out = [[{"img": f, "caption": c} for f, c in scenes[i]] for i in range(max(scenes) + 1)]
-json.dump(out, open("scenes.json", "w"), ensure_ascii=False, indent=0)
-print("scenes.json:", [len(x) for x in out])
+
+chs = json.load(open("src/condensed.json"))
+for i, ch in enumerate(chs):
+    d = pathlib.Path(f"{i+1:02d}"); d.mkdir(exist_ok=True); (d / "img").mkdir(exist_ok=True)
+    json.dump(ch["paras"], open(d / "text.json", "w"), ensure_ascii=False, indent=0)
+    sc = [{"img": f, "caption": c} for f, c in scenes.get(i, [])]
+    json.dump(sc, open(d / "scenes.json", "w"), ensure_ascii=False, indent=0)
+    if not (d / "node.yaml").exists():
+        (d / "node.yaml").write_text(f'type: story\ntitle: {ch["title"]}\nlabel: {ch["num"]}\ntext: text.json\nscenes: scenes.json\nimages: img\n')
+    first = d / "img" / (sc[0]["img"] + ".jpg") if sc else None
+    if first and first.exists() and not (d / "cover.jpg").exists():
+        shutil.copy(first, d / "cover.jpg")
+    print(d, ch["num"], ch["title"], len(ch["paras"]), "paras", len(sc), "scenes", "" if first and first.exists() else "(no pictures)")

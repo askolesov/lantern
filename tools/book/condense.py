@@ -605,4 +605,4 @@ if __name__ == "__main__":
         n = sum(len(p) for p in ch["paras"]); o = sum(len(p) for p in full[i]["paras"])
         tag = "сжата" if i in condensed else "полная"
         print(f'{ch["num"]}: {o} -> {n} символов (~{n/1100:.0f} мин при 1100 зн/мин), абзацев {len(ch["paras"])}, {tag}')
-    json.dump(chs, open("book.json", "w"), ensure_ascii=False, indent=1)
+    json.dump(chs, open("src/condensed.json", "w"), ensure_ascii=False, indent=1)
