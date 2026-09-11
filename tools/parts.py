@@ -11,10 +11,14 @@ from PIL import Image
 
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"}
 
-def get(url, referer=None):
+def get(url, referer=None, tries=3):
     h = dict(UA)
     if referer: h["Referer"] = referer
-    return urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=300).read()
+    for i in range(tries):
+        try: return urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=300).read()
+        except Exception as e:  # IncompleteRead, timeouts: retry
+            if i == tries - 1: raise
+            print("  retry", i + 1, url[-40:], e); time.sleep(5)
 
 def slugify(text, fallback="part"):
     tr = dict(zip("абвгдеёжзийклмнопрстуфхцчшщъыьэюя", ["a","b","v","g","d","e","yo","zh","z","i","j","k","l","m","n","o","p","r","s","t","u","f","h","c","ch","sh","sch","","y","","e","yu","ya"]))
