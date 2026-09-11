@@ -277,4 +277,3 @@ func (n *Node) PrevNext() (prev, next *Node) {
 
 // IsLeaf reports whether the node is playable/readable content.
 func (n *Node) IsLeaf() bool { return n.Type != Collection }
-
