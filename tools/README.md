@@ -9,6 +9,7 @@ package format in `docs/specs/2026-09-11-lantern-design.md` §2. Python lives on
 | `yt.sh <url> <dir>` | yt-dlp → `<dir>/video.mp4` (h264/aac ≤1080p, plays in Safari without transcoding), `cover.jpg` from the thumbnail, `node.yaml` draft with the video title. Fix the title by hand. |
 | `audio.sh <file.mp3> <dir>` | copies the file into `<dir>` and writes a `node.yaml` draft. |
 | `cover.py <dir> "<prompt>"` | square cover via gpt-image-1 in the house `BASE_MID` style. Key from `life/dossiers/2026-08-local-ai-hardware/.env`. ~$0.07 per cover — never run without being asked. |
+| `nukadeti.py <listing-url> <dir> ["Title"]` | grabs a whole nukadeti.ru audio listing into a collection: per tale `<slug>/{<slug>.mp3, cover.jpg, node.yaml}` (mp3 via the site's download endpoint from the player JSON, cover = tale illustration, square-cropped). Incremental: reruns fill missing files only. |
 | `book/` | the Hobbit pipeline (condense → export → gen_images → shrink). Hobbit-specific until a second book exists. Read `book/CLAUDE.md`. |
 
 Requirements: `brew install yt-dlp ffmpeg`, Python 3 with `Pillow`.
