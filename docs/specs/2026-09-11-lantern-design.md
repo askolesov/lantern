@@ -168,9 +168,10 @@ Input: `book.json` chapters and `scenes.json` per chapter.
    `k = 0…S−1` in order, target `k·step`; place it before the not-yet-taken paragraph
    whose `cum_i` is closest to the target. First picture lands at the top, the last about
    half a step before the end.
-3. **Figures.** Alternate `right` / `left` per figure, counted across the whole book
-   (global counter, starts with `right`). Caption under the picture. Missing image →
-   placeholder box, page still renders.
+3. **Figures.** Alternate `right` / `left` per figure with a counter that runs across
+   the whole book, not per chapter: figure `i` of chapter `k` has global index
+   `sum(scenes in chapters < k) + i`, even → `right`, odd → `left`. Caption under the
+   picture. Missing image → placeholder box, page still renders.
 4. **Verse.** A paragraph with `\n` and under 600 chars gets `class="verse"`; `\n` → `<br>`.
 5. **Chapter page chrome.** Chapter number line + title; bottom nav: previous chapter,
    chapter list, next chapter (disabled at the ends). Reading column max 1280px, figures
@@ -188,12 +189,17 @@ Verification of the port: render Hobbit chapter 1 with the Go server and with th
   internal/catalog/                         scanner, node types, validation, sorting
   internal/book/                            splitting + placement (§5), pure functions
   internal/web/                             handlers, templates, static, manifest
-  tools/                                    package producers (generic only)
+  tools/                                    everything that PRODUCES content; the server
+                                            never imports it, only this dir may hold Python
     yt.sh <url> <dir>                       yt-dlp → video.mp4 (h264/aac ≤1080p, Safari-safe),
                                             cover.jpg from thumbnail, node.yaml draft
     audio.sh <file.mp3> <dir>               copies file, writes node.yaml draft
     cover.py <dir> "<prompt>"               gpt-image-1 square cover, BASE_MID style;
                                             key from life/dossiers/2026-08-local-ai-hardware/.env
+    book/                                   the Hobbit pipeline, moved as is:
+      condense.py gen_images.py shrink.py   (condensed text and scene prompts still inside
+      export.py                             them — Hobbit-specific until a second book)
+      README.md CLAUDE.md                   the old Hobbit rules, paths corrected
   deploy/                                   Dockerfile, k8s manifests (see §7)
   testdata/content/                         small fixture tree for tests
   docs/specs/, docs/plans/
@@ -203,15 +209,22 @@ Verification of the port: render Hobbit chapter 1 with the Go server and with th
   audio/  video/  books/hobbit/…            the tree of §2
 ```
 
-Hobbit migration: `~/Documents/projects-my/hobbit/` moves to
-`lantern-content/books/hobbit/`. Package files at the top (`node.yaml`, `cover.jpg`,
-`book.json`, `scenes.json`, `img/chapter-N/*.jpg`); everything else into `src/`
-(`condense.py`, `gen_images.py`, `shrink.py`, `chapters.full.json`, `scenes_*.py`, old
-`CLAUDE.md` and `README.md` with paths corrected, `img/_old`, the old `chapter-N.html` kept
-as the rendering reference until the port is verified, then deleted). `build.py` is
-replaced by `src/export.py`, which writes `book.json` (from `chapters.json` after
-`condense.py`) and `scenes.json` (the `scenes` dict). The Python is not generalised until
-a second book exists.
+Hobbit migration splits the old folder in two:
+- **Tools → `lantern/tools/book/`**: `condense.py`, `gen_images.py`, `shrink.py`,
+  `scenes_*.py`, old `CLAUDE.md`/`README.md`. `build.py` is replaced by `export.py`, which
+  writes `book.json` (from `chapters.json` after `condense.py`) and `scenes.json` (the
+  `scenes` dict). Every script takes the package dir as an argument
+  (`python3 tools/book/export.py ../lantern-content/books/hobbit`); nothing in `tools/`
+  assumes a fixed content path.
+- **Data → `lantern-content/books/hobbit/`**: package files at the top (`node.yaml`,
+  `cover.jpg`, `book.json`, `scenes.json`, `img/chapter-N/*.jpg`); `src/` holds
+  `chapters.full.json`, `img/_old`, and the old `chapter-N.html` kept as the rendering
+  reference until the port is verified, then deleted. `src/` has no `node.yaml`, so the
+  scanner ignores it.
+
+The Python stays Hobbit-specific (condensed text and scene prompts live inside the
+scripts) until a second book exists; then that data moves into the package and `tools/book`
+becomes generic.
 
 `life/map.md`: the Hobbit line becomes a Lantern line (repo, content dir, cluster URL).
 
@@ -251,7 +264,8 @@ a second book exists.
 2. `book` port + golden test against `build.py`.
 3. `web`: catalog, audio, video, book pages with plain templates; design from Claude Design
    applied once it exists.
-4. Hobbit migration + `export.py`; run the port verification.
+4. Hobbit migration: pipeline to `tools/book/`, data to the content dir, `export.py`;
+   run the port verification.
 5. Dockerfile, Actions, k8s manifests, first deploy, `make sync`.
 6. `tools/yt.sh`, `audio.sh`, `cover.py`; first cartoon and first audio tale.
 7. `life/map.md` line; GitHub repo pushed.
