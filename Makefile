@@ -2,6 +2,7 @@ CONTENT ?= $(HOME)/Documents/projects-my/lantern-content
 NODE    ?= sidequest-k3s
 REMOTE  ?= /srv/lantern/content
 IMAGE   ?= ghcr.io/askolesov/lantern
+export KUBECONFIG ?= $(HOME)/.kube/sidequest.yaml
 
 .PHONY: build test run check sync image deploy fmt
 
