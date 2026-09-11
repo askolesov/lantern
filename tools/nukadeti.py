@@ -22,11 +22,19 @@ def get(url, referer=None):
     if referer: h["Referer"] = referer
     return urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=180).read()
 
+def clean_title(t):
+    """'Аудиосказка Мишкина каша' → 'Мишкина каша'; 'Аудио Сказка о рыбаке' → 'Сказка о рыбаке';
+    'Руслан и Людмила - слушать' → 'Руслан и Людмила'."""
+    t = re.sub(r"^Аудио\s*", "", t.strip(), flags=re.I)
+    if not re.match(r"сказк[аи]\s+о\b", t, re.I):
+        t = re.sub(r"^(сказка|сказки|книга|рассказ|рассказы)\s+", "", t, flags=re.I)
+    return re.sub(r"\s*[-–—]\s*слушать.*$", "", t, flags=re.I).strip()
+
 def page(url):
     s = get(url).decode("utf-8", "replace")
     h1 = re.search(r"<h1[^>]*>(.*?)</h1>", s, re.S)
     title = html.unescape(re.sub(r"<[^>]+>", "", h1.group(1))).strip() if h1 else url
-    title = re.sub(r"^(Аудио ?(сказка|книга|рассказ|рассказы|сказки)|Аудиокнига|Аудиосказки?|Аудиорассказы)\s+", "", title)
+    title = clean_title(title)
     m = re.search(r"data-files='(\[.*?\])'", s)
     files = json.loads(html.unescape(m.group(1))) if m else []
     seen, subs = {}, []
