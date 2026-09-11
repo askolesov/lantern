@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app: lantern }
     spec:
+      imagePullSecrets: [{ name: ghcr }] # copied from ns hestia (classic PAT, read:packages); the image is private
       containers:
         - name: lantern
           image: ghcr.io/askolesov/lantern

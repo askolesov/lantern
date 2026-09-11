@@ -31,7 +31,7 @@ make test
 
 ## Deploy
 
-Image from GitHub Actions on a `v*` tag → `ghcr.io/askolesov/lantern`. Manifests in
+Image from GitHub Actions on a `v*` tag → `ghcr.io/askolesov/lantern` (private; the cluster pulls with the `ghcr` secret copied from ns `hestia`). Manifests in
 `deploy/k8s/` (`make deploy`), content pushed with `make sync` (rsync to the node; the Mac
 folder is the master copy). LAN + Tailscale only.
 
