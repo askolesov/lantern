@@ -2,10 +2,13 @@
 
 **Where things are since 2026-09-11 (Lantern migration).** These scripts are the *tools*; the
 *data* is the package `~/Documents/projects-my/lantern-content/books/hobbit/` (not in git):
-`node.yaml`, `cover.jpg`, `book.json` (condensed text, written by `condense.py`), `scenes.json`
-(scene order + captions, written by `export.py`), `img/chapter-N/*.{png,jpg}`; `src/` holds
-`chapters.full.json`, `img-old/` (rejected pictures), the pre-migration `chapter-N.html` and
-`build.py` as the rendering reference (delete once nobody needs them), `ch0N.txt`, `docs/`.
+`node.yaml` (collection) + `cover.jpg`, then one **story** dir per chapter `NN/` with
+`node.yaml` (title, label, `hidden: true` for ch. 8–10 until they have pictures), `cover.jpg`
+(= first scene), `text.json`, `scenes.json`, `img/<slug>.{png,jpg}`. `condense.py` writes
+`src/condensed.json`; `export.py` splits it into the `NN/` dirs (never overwrites an existing
+`node.yaml`). `src/` also holds `chapters.full.json`, `img-old/` (rejected pictures), the
+pre-migration `chapter-N.html` + `build.py` as the rendering reference, `ch0N.txt`, `docs/`.
+Image slugs stay `NN_slug` in `gen_images.py`; the file lands in `NN/img/slug.png`.
 **All scripts run from the package dir:**
 `cd ~/Documents/projects-my/lantern-content/books/hobbit && python3 ~/Documents/projects-my/lantern/tools/book/condense.py && python3 …/export.py`,
 pictures: `python3 …/gen_images.py 08_* …` then `python3 …/shrink.py`. There is no `build.py`

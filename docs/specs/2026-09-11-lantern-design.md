@@ -43,7 +43,7 @@ Everything is explicit; one way to do one thing:
 Common header, all types:
 
 ```yaml
-type: collection | audio | video | book
+type: collection | audio | video | story
 title: Простоквашино
 hidden: false          # optional, default false — excluded from the UI, kept on disk
 ```
@@ -57,13 +57,19 @@ source: https://…            # optional, provenance for the parent
 ```
 
 ```yaml
-# book
-text: book.json      # [{num, title, paras:[…]}] — the Hobbit reader's chapters.json format
-scenes: scenes.json  # [[{img, caption}, …], …] — one ordered list per chapter
-images: img          # dir holding chapter-N/<img>.jpg
+# story — ONE illustrated text (a short tale, or one chapter of a long book)
+label: Глава 1       # optional small line above the title
+text: text.json      # ["paragraph", …]
+scenes: scenes.json  # [{img, caption}, …] in reading order
+images: img          # dir holding <img>.jpg
 ```
 
 `collection` has no tail; its children are the subdirectories that contain `node.yaml`.
+
+**A book is not a type** (decision 2026-09-11): a long book is a `collection` of `story`
+leaves, one per chapter, exactly as an audiobook is a collection of `audio` leaves. The
+chapter list is the ordinary catalog grid; previous/next chapter is the ordinary sibling
+navigation. A chapter that is not ready (text not condensed, no pictures) is `hidden: true`.
 
 ### 2.2 Example tree
 
@@ -80,8 +86,10 @@ content/
         01/              node.yaml (video) + cover.jpg + 01.mp4
         02/
   books/
-    hobbit/              node.yaml (book) + cover.jpg + book.json + scenes.json + img/
-      src/               NOT a node: python pipeline, full text, old pictures
+    hobbit/              node.yaml (collection) + cover.jpg
+      01/                node.yaml (story) + cover.jpg + text.json + scenes.json + img/
+      02/
+      src/               NOT a node: full text, condensed.json, old pictures, old HTML
 ```
 
 ### 2.3 Validation
@@ -123,13 +131,12 @@ rules below are behaviour, not looks.
 - Same sibling next/previous and autoplay-next as audio. No per-session cap.
 - Position saved/restored like audio.
 
-### 3.4 Book (`book`)
+### 3.4 Story (`story`)
 
-- Opens on a chapter list: one tile per chapter, image = first scene of that chapter,
-  caption = chapter number and title. Picture navigation, same as the catalog.
-- Chapter page reproduces the current Hobbit reader layout exactly (see §5).
-- Last opened chapter saved to `localStorage`; the book tile in the catalog opens the
-  chapter list, not the chapter (the list is one tap away and shows where you are).
+- One scrolling page: label + title, text with pictures placed by §5, bottom nav with
+  previous / list / next (siblings in the collection; ends disabled).
+- A book's chapter list is its collection page (§3.1); nothing book-specific exists.
+- No reading-position memory (dropped 2026-09-11).
 
 ### 3.5 Full screen
 
@@ -146,8 +153,7 @@ chrome-less app. Locking the child in is Guided Access, not the app.
 - **Routes**
   - `GET /` → root catalog.
   - `GET /n/<path>` → node page by directory path from the content root (URL-encoded
-    segments). Renders catalog / audio / video / book-chapter-list by `type`.
-  - `GET /n/<path>/ch/<k>` → book chapter `k` (1-based).
+    segments). Renders catalog / audio / video / story by `type`.
   - `GET /m/<path>/<file>` → media and covers from inside node `<path>`, served with
     `http.ServeFile` (Range requests, needed for Safari seeking). The resolved path must
     stay inside the node directory; otherwise 404.
@@ -156,30 +162,32 @@ chrome-less app. Locking the child in is Guided Access, not the app.
   Nothing else.
 - Errors: unknown path → 404 page in the same look; broken node → skipped (see §2.3).
 
-## 5. Book rendering — port of `build.py`, one to one
+## 5. Story rendering — port of `build.py`, one to one
 
-Input: `book.json` chapters and `scenes.json` per chapter.
+Input: a story's `text.json` paragraphs and `scenes.json`.
 
 1. **Paragraph splitting.** Paragraphs longer than 900 characters that contain no `\n`
    are split at sentence boundaries (`(?<=[.!?…»])\s+`), greedily packing sentences up to
    900 chars per piece. Paragraphs with `\n` (verse) are never split.
-2. **Placement.** For a chapter with `S` scenes and paragraphs `p_0…p_n`, let `cum_i` be
+2. **Placement.** For a story with `S` scenes and paragraphs `p_0…p_n`, let `cum_i` be
    the character offset of `p_i` and `step = total_chars / (S − 0.5)`. For each scene
    `k = 0…S−1` in order, target `k·step`; place it before the not-yet-taken paragraph
    whose `cum_i` is closest to the target. First picture lands at the top, the last about
    half a step before the end.
-3. **Figures.** Alternate `right` / `left` per figure with a counter that runs across
-   the whole book, not per chapter: figure `i` of chapter `k` has global index
-   `sum(scenes in chapters < k) + i`, even → `right`, odd → `left`. Caption under the
-   picture. Missing image → placeholder box, page still renders.
+3. **Figures.** Alternate `right` / `left` per figure, restarting with `right` on every
+   story (build.py counted across the whole book; the per-story restart is the one
+   deliberate deviation, 2026-09-11). Caption under the picture. Missing image →
+   dimmed box, page still renders.
 4. **Verse.** A paragraph with `\n` and under 600 chars gets `class="verse"`; `\n` → `<br>`.
-5. **Chapter page chrome.** Chapter number line + title; bottom nav: previous chapter,
-   chapter list, next chapter (disabled at the ends). Reading column max 1280px, figures
-   58% wide floated with 32px gutter; under 760px figures are full width, not floated.
-   Fonts and colours are design's call, the structure is fixed.
+5. **Page chrome.** Label line + title; bottom nav: previous, list, next (disabled at
+   the ends). Reading column max 1000px, figures 58% wide floated with 32px gutter; under
+   760px figures are full width, not floated. Fonts and colours per the Claude Design
+   screens (`docs/design/`), the structure is fixed.
 
-Verification of the port: render Hobbit chapter 1 with the Go server and with the old
-`build.py`; the sequence of (paragraph index → scene) must be identical.
+Verification of the port: a golden test reproduces build.py's (paragraph index → scene)
+sequence for all ten Hobbit chapters (`internal/story/testdata`), and the migrated
+package was rendered and compared figure-by-figure with the old HTML (2026-09-11: identical
+for ch. 1–7, all images resolve).
 
 ## 6. Repository and content layout
 
@@ -187,7 +195,7 @@ Verification of the port: render Hobbit chapter 1 with the Go server and with th
 ~/Documents/projects-my/lantern/            git, github.com/askolesov/lantern
   cmd/lantern/                              main: serve, check
   internal/catalog/                         scanner, node types, validation, sorting
-  internal/book/                            splitting + placement (§5), pure functions
+  internal/story/                           splitting + placement (§5), pure functions
   internal/web/                             handlers, templates, static, manifest
   tools/                                    everything that PRODUCES content; the server
                                             never imports it, only this dir may hold Python
@@ -198,7 +206,8 @@ Verification of the port: render Hobbit chapter 1 with the Go server and with th
                                             key from life/dossiers/2026-08-local-ai-hardware/.env
     book/                                   the Hobbit pipeline, moved as is:
       condense.py gen_images.py shrink.py   (condensed text and scene prompts still inside
-      export.py                             them — Hobbit-specific until a second book)
+      export.py                             them — Hobbit-specific until a second book);
+                                            export.py writes NN/{node.yaml,text.json,scenes.json,cover.jpg}
       README.md CLAUDE.md                   the old Hobbit rules, paths corrected
   deploy/                                   Dockerfile, k8s manifests (see §7)
   testdata/content/                         small fixture tree for tests
@@ -218,15 +227,15 @@ Verification of the port: render Hobbit chapter 1 with the Go server and with th
 Hobbit migration splits the old folder in two:
 - **Tools → `lantern/tools/book/`**: `condense.py`, `gen_images.py`, `shrink.py`,
   `scenes_*.py`, old `CLAUDE.md`/`README.md`. `build.py` is replaced by `export.py`, which
-  writes `book.json` (from `chapters.json` after `condense.py`) and `scenes.json` (the
-  `scenes` dict). Every script takes the package dir as an argument
+  splits `src/condensed.json` (written by `condense.py`) into per-chapter story dirs and
+  carries the old `scenes` dict. Every script takes the package dir as an argument
   (`python3 tools/book/export.py ../lantern-content/books/hobbit`); nothing in `tools/`
   assumes a fixed content path.
-- **Data → `lantern-content/books/hobbit/`**: package files at the top (`node.yaml`,
-  `cover.jpg`, `book.json`, `scenes.json`, `img/chapter-N/*.jpg`); `src/` holds
-  `chapters.full.json`, `img/_old`, and the old `chapter-N.html` kept as the rendering
-  reference until the port is verified, then deleted. `src/` has no `node.yaml`, so the
-  scanner ignores it.
+- **Data → `lantern-content/books/hobbit/`**: `node.yaml` (collection) + `cover.jpg`, then
+  `NN/` per chapter (`node.yaml` story, `cover.jpg`, `text.json`, `scenes.json`, `img/`);
+  `src/` holds `chapters.full.json`, `condensed.json` (condense.py output), `img-old/`,
+  and the old `chapter-N.html` + `build.py` kept as the rendering reference (port verified
+  2026-09-11; delete when convenient). `src/` has no `node.yaml`, so the scanner ignores it.
 
 The Python stays Hobbit-specific (condensed text and scene prompts live inside the
 scripts) until a second book exists; then that data moves into the package and `tools/book`
@@ -254,12 +263,13 @@ becomes generic.
 - `internal/catalog`: scan `testdata/content` → expected tree; broken nodes (bad yaml,
   unknown type, missing file, missing cover, path escape) are reported and skipped; natural
   sort (`2` before `10`); `hidden` excluded from children but present in `check` output.
-- `internal/book`: splitting and placement as pure functions with table tests; a golden
-  test that reproduces `build.py`'s placement for Hobbit chapter 1 (fixture = its
-  `chapters.json` + scene list, expected = paragraph indices captured from `build.py`).
+- `internal/story`: splitting and placement as pure functions with table tests; a golden
+  test that reproduces `build.py`'s placement for all ten Hobbit chapters (fixture = the
+  pre-migration `chapters.json`, expected = paragraph indices parsed from the old HTML).
 - `internal/web`: `httptest` — root renders children; leaf pages by type; sibling
-  prev/next links; media served with `206` on a Range request; `../` in a media path → 404;
-  unknown node → 404; hidden node → 404.
+  prev/next links; story figures in golden order with sides restarting per story; media
+  served with `206` on a Range request; `../` in a media path → 404; unknown node → 404;
+  hidden node → 404.
 - `lantern check` exit codes on a clean and a broken fixture.
 - Manual on iPad after first deploy: seek in video, audio with screen locked, home-screen
   app opens full screen, Tailscale from mobile data.
@@ -267,9 +277,8 @@ becomes generic.
 ## 9. Order of work (for the plan)
 
 1. Repo skeleton, `catalog` scanner + `check`, tests.
-2. `book` port + golden test against `build.py`.
-3. `web`: catalog, audio, video, book pages with plain templates; design from Claude Design
-   applied once it exists.
+2. `story` port + golden test against `build.py`.
+3. `web`: catalog, audio, video, story pages styled after the Claude Design screens.
 4. Hobbit migration: pipeline to `tools/book/`, data to the content dir, `export.py`;
    run the port verification.
 5. Dockerfile, Actions, k8s manifests, first deploy, `make sync`.

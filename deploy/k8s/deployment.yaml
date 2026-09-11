@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lantern
+spec:
+  replicas: 1
+  strategy: { type: Recreate } # RWO volume
+  selector:
+    matchLabels: { app: lantern }
+  template:
+    metadata:
+      labels: { app: lantern }
+    spec:
+      containers:
+        - name: lantern
+          image: ghcr.io/askolesov/lantern
+          args: ["serve", "--content", "/content", "--addr", ":8080"]
+          ports: [{ containerPort: 8080, name: http }]
+          volumeMounts:
+            - { name: content, mountPath: /content, readOnly: true }
+          readinessProbe:
+            httpGet: { path: /manifest.webmanifest, port: http }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 20m, memory: 32Mi }
+            limits: { memory: 128Mi }
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: content
+          persistentVolumeClaim: { claimName: lantern-content }

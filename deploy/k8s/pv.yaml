@@ -1,0 +1,24 @@
+# Content lives on the node at /srv/lantern/content, filled by `make sync` (rsync from the Mac,
+# which is the master copy). Same static local PV pattern as the sidequest cluster.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lantern-content
+spec:
+  capacity:
+    storage: 50Gi # informational for local PVs — real limit is the VM disk
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /srv/lantern/content # must pre-exist on the node; readable by uid 65534
+  claimRef:
+    namespace: lantern
+    name: lantern-content
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values: [hestia-re]

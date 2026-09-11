@@ -12,6 +12,8 @@ import (
 	"github.com/askolesov/lantern/internal/web"
 )
 
+var version = "dev" // set by -ldflags at build time
+
 func main() {
 	if len(os.Args) < 2 {
 		usage()
@@ -29,7 +31,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Printf("lantern: serving %s on %s", *content, *addr)
+		log.Printf("lantern %s: serving %s on %s", version, *content, *addr)
 		log.Fatal(http.ListenAndServe(*addr, s))
 	case "check":
 		if len(os.Args) < 3 {
