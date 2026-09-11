@@ -1,0 +1,17 @@
+{{template "head" .}}
+<body class="plum">
+<header class="bar dark">{{template "back" .}}</header>
+<main class="player audio" data-tracks='{{json .Tracks}}' data-index="{{.Index}}">
+  <div class="big">{{template "cover" .}}</div>
+  <div class="titles"><div class="t" id="title">{{.Node.Title}}</div><div class="sub">{{if .Parent}}{{.Parent.Title}}{{end}}</div></div>
+  <div class="seek" id="seek"><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
+  <div class="times"><span id="cur">0:00</span><span id="dur">–:––</span></div>
+  <div class="controls">
+    <button class="round" id="prev" aria-label="Предыдущая">{{template "icon-prev"}}</button>
+    <button class="round main" id="play" aria-label="Играть"><span class="i-play">{{template "icon-play"}}</span><span class="i-pause">{{template "icon-pause"}}</span></button>
+    <button class="round" id="next" aria-label="Следующая">{{template "icon-next"}}</button>
+  </div>
+  <audio id="media" preload="metadata" src="{{mediaURL .Node .Node.File}}"></audio>
+</main>
+<script src="/static/player.js"></script>
+</body></html>

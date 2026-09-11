@@ -1,0 +1,13 @@
+{{template "head" .}}
+<body class="plum">
+<header class="bar dark">{{template "back" .}}</header>
+<main class="player video" data-tracks='{{json .Tracks}}' data-index="{{.Index}}">
+  <video id="media" controls playsinline preload="metadata" {{if .Cover}}poster="{{.Cover}}"{{end}} src="{{mediaURL .Node .Node.File}}"></video>
+  <div class="vnav">
+    <button class="pill" id="prev"{{if not .Prev}} hidden{{end}}>{{template "icon-prev"}}<span id="prev-title">{{if .Prev}}{{.Prev.Title}}{{end}}</span></button>
+    <div class="titles"><div class="t"><span id="parent">{{if .Parent}}{{.Parent.Title}} · {{end}}</span><span id="title">{{.Node.Title}}</span></div><div class="sub"{{if not .Next}} hidden{{end}}>дальше играет сама</div></div>
+    <button class="pill" id="next"{{if not .Next}} hidden{{end}}><span id="next-title">{{if .Next}}{{.Next.Title}}{{end}}</span>{{template "icon-next"}}</button>
+  </div>
+</main>
+<script src="/static/player.js"></script>
+</body></html>

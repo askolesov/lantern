@@ -1,0 +1,8 @@
+{{template "head" .}}
+<body class="paper">
+<header class="bar">
+  {{if .IsRoot}}<div class="logo">{{template "icon-lantern"}}</div><h1>{{.Node.Title}}</h1>
+  {{else}}{{template "back" .}}<h1>{{.Node.Title}}</h1>{{end}}
+</header>
+<main>{{template "tiles" .}}</main>
+</body></html>
