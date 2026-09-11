@@ -1,6 +1,6 @@
 // Package catalog scans a content directory into a tree of nodes.
 //
-// A node is a directory containing node.yaml. Everything is explicit: the
+// A node is a directory containing node.yaml (types: collection, audio, video, story). Everything is explicit: the
 // type is declared in the file, children are sorted by natural order of
 // their directory names, and the cover is cover.jpg|png|webp next to
 // node.yaml. Broken nodes are reported as Problems and skipped.
@@ -24,7 +24,7 @@ const (
 	Collection Type = "collection"
 	Audio      Type = "audio"
 	Video      Type = "video"
-	Book       Type = "book"
+	Story      Type = "story"
 )
 
 const NodeFile = "node.yaml"
@@ -44,7 +44,8 @@ type Node struct {
 	File   string
 	Source string
 
-	// book
+	// story: one illustrated text
+	Label  string // optional small line above the title ("Глава 1")
 	Text   string
 	Scenes string
 	Images string
@@ -79,6 +80,7 @@ type rawNode struct {
 	Hidden bool   `yaml:"hidden"`
 	File   string `yaml:"file"`
 	Source string `yaml:"source"`
+	Label  string `yaml:"label"`
 	Text   string `yaml:"text"`
 	Scenes string `yaml:"scenes"`
 	Images string `yaml:"images"`
@@ -157,7 +159,7 @@ func load(dir, rel string, parent *Node) (*Node, []Problem) {
 		return fail("bad yaml: " + err.Error())
 	}
 	n := &Node{Path: rel, Dir: dir, Type: Type(raw.Type), Title: strings.TrimSpace(raw.Title),
-		Hidden: raw.Hidden, Source: raw.Source, Parent: parent}
+		Hidden: raw.Hidden, Source: raw.Source, Label: strings.TrimSpace(raw.Label), Parent: parent}
 	if n.Title == "" {
 		return fail("title is required")
 	}
@@ -184,7 +186,7 @@ func load(dir, rel string, parent *Node) (*Node, []Problem) {
 		var o bool
 		n.File, o = inside("file", raw.File)
 		ok = ok && o
-	case Book:
+	case Story:
 		var o1, o2, o3 bool
 		n.Text, o1 = inside("text", raw.Text)
 		n.Scenes, o2 = inside("scenes", raw.Scenes)

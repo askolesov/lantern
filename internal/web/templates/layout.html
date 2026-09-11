@@ -27,8 +27,8 @@
 {{define "cover"}}{{if .Cover}}<img class="cover" src="{{.Cover}}" alt="" loading="lazy">{{else}}<div class="cover ph g{{.Gradient}}"><span>{{.Letter}}</span></div>{{end}}{{end}}
 
 {{define "tiles"}}<div class="grid">
-{{range .Tiles}}<a class="tile{{if .Stack}} stack{{end}}" href="{{.URL}}" data-url="{{.URL}}">
-  <div class="art">{{template "cover" .}}<span class="badge">читаем</span></div>
+{{range .Tiles}}<a class="tile{{if .Stack}} stack{{end}}" href="{{.URL}}">
+  <div class="art">{{template "cover" .}}</div>
   <div class="cap">{{.Title}}</div>
 </a>
 {{end}}</div>{{end}}

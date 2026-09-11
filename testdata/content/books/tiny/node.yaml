@@ -1,5 +1,2 @@
-type: book
+type: collection
 title: Крошка
-text: book.json
-scenes: scenes.json
-images: img

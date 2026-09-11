@@ -150,32 +150,30 @@ func TestMediaRangeAndTraversal(t *testing.T) {
 	}
 }
 
-func TestBookPages(t *testing.T) {
+func TestStoryPage(t *testing.T) {
 	ts := newTestServer(t)
 	_, body := get(t, ts, "/n/books/tiny")
-	if !strings.Contains(body, "2 глав") || !strings.Contains(body, `href="/n/books/tiny/ch/1"`) || !strings.Contains(body, `src="/m/books/tiny/img/chapter-1/one.jpg"`) {
-		t.Error("chapter list")
+	if !strings.Contains(body, `href="/n/books/tiny/01"`) || !strings.Contains(body, `src="/m/books/tiny/01/cover.jpg"`) {
+		t.Error("book collection lists chapters as tiles")
 	}
-	_, body = get(t, ts, "/n/books/tiny/ch/1")
-	// tiny ch1: 3 paragraphs, 2 scenes -> figures before paragraph 0 and 2; first figure is global #0 -> right
-	fig := regexp.MustCompile(`<figure class="(\w+)">`).FindAllStringSubmatch(body, -1)
-	if len(fig) != 2 || fig[0][1] != "right" || fig[1][1] != "left" {
+	_, body = get(t, ts, "/n/books/tiny/01")
+	// 3 paragraphs, 2 scenes -> figures before paragraph 0 and 2; first figure right, second left
+	fig := regexp.MustCompile(`<figure class="(\w+)"><img src="([^"]+)"`).FindAllStringSubmatch(body, -1)
+	if len(fig) != 2 || fig[0][1] != "right" || fig[1][1] != "left" || fig[0][2] != "/m/books/tiny/01/img/one.jpg" {
 		t.Errorf("figures: %v", fig)
 	}
 	if !strings.Contains(body, `<p class="verse">Строка один<br>строка два</p>`) {
 		t.Error("verse rendering")
 	}
-	if !strings.Contains(body, `href="/n/books/tiny/ch/2">Глава 2`) || !strings.Contains(body, `class="off"`) {
-		t.Error("chapter nav")
+	if !strings.Contains(body, `<div class="num">Глава 1</div>`) || !strings.Contains(body, "<h2>Начало</h2>") {
+		t.Error("heading")
 	}
-	_, body = get(t, ts, "/n/books/tiny/ch/2")
-	// ch2 figure is global #2 -> right
-	if !strings.Contains(body, `<figure class="right">`) || !strings.Contains(body, `chapter-2/three.jpg`) {
-		t.Error("global figure counter across chapters")
+	if !strings.Contains(body, `href="/n/books/tiny/02"`) || !strings.Contains(body, `class="off"`) || !strings.Contains(body, `href="/n/books/tiny">`) {
+		t.Error("prev/next/list nav")
 	}
-	code, _ := get(t, ts, "/n/books/tiny/ch/3")
-	if code != 404 {
-		t.Errorf("chapter out of range: %d", code)
+	_, body = get(t, ts, "/n/books/tiny/02")
+	if !strings.Contains(body, `<figure class="right">`) {
+		t.Error("figure sides restart per story")
 	}
 }
 

@@ -1,9 +1,0 @@
-{{template "head" .}}
-<body class="paper">
-<header class="bar">
-  {{template "back" .}}
-  <div class="titles"><h1>{{.Node.Title}}</h1><div class="sub">{{.Chapters}} глав</div></div>
-</header>
-<main data-book="{{.Node.Path}}">{{template "tiles" .}}</main>
-<script src="/static/book.js"></script>
-</body></html>

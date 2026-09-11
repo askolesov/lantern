@@ -5,7 +5,6 @@ package web
 import (
 	"embed"
 	"encoding/json"
-	"fmt"
 	"hash/fnv"
 	"html/template"
 	"io/fs"
@@ -13,13 +12,12 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
 
-	"github.com/askolesov/lantern/internal/book"
 	"github.com/askolesov/lantern/internal/catalog"
+	"github.com/askolesov/lantern/internal/story"
 )
 
 //go:embed templates/*.html
@@ -124,7 +122,6 @@ type Tile struct {
 	Letter   string
 	Gradient int
 	Stack    bool
-	Current  bool
 }
 
 type Track struct {
@@ -149,15 +146,7 @@ type page struct {
 	Gradient int
 	Prev     *catalog.Node
 	Next     *catalog.Node
-	// chapter page
-	Chapter      int
-	Chapters     int
-	ChapterNum   string
-	ChapterTitle string
-	Blocks       []block
-	ListURL      string
-	PrevURL      string
-	NextURL      string
+	Blocks   []block // story page
 }
 
 type block struct {
@@ -220,15 +209,6 @@ func (s *Server) node(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p := strings.Trim(r.PathValue("path"), "/")
-	// "<path>/ch/<k>" → chapter of the book at <path>
-	chapter := 0
-	if segs := strings.Split(p, "/"); len(segs) >= 3 && segs[len(segs)-2] == "ch" {
-		if k, err := strconv.Atoi(segs[len(segs)-1]); err == nil && k >= 1 {
-			if b := t.Find(strings.Join(segs[:len(segs)-2], "/")); b != nil && b.Type == catalog.Book {
-				chapter, p = k, b.Path
-			}
-		}
-	}
 	n := t.Find(p)
 	if n == nil || (n.Hidden && n.Parent != nil) {
 		s.notFound(w)
@@ -246,7 +226,7 @@ func (s *Server) node(w http.ResponseWriter, r *http.Request) {
 		}
 		s.render(w, "catalog.html", pg)
 	case catalog.Audio, catalog.Video:
-		for i, sib := range n.Siblings() {
+		for _, sib := range n.Siblings() {
 			if sib.Type != n.Type {
 				continue
 			}
@@ -255,7 +235,6 @@ func (s *Server) node(w http.ResponseWriter, r *http.Request) {
 			}
 			pg.Tracks = append(pg.Tracks, Track{Path: sib.Path, URL: nodeURL(sib.Path), Title: sib.Title,
 				File: mediaURL(sib, sib.File), Cover: coverOf(sib)})
-			_ = i
 		}
 		pg.Prev, pg.Next = n.PrevNext()
 		if n.Type == catalog.Audio {
@@ -263,68 +242,42 @@ func (s *Server) node(w http.ResponseWriter, r *http.Request) {
 		} else {
 			s.render(w, "video.html", pg)
 		}
-	case catalog.Book:
-		b, err := book.Load(n.Dir, n.Text, n.Scenes)
+	case catalog.Story:
+		st, err := story.Load(n.Dir, n.Text, n.Scenes)
 		if err != nil {
-			log.Printf("book %s: %v", n.Path, err)
+			log.Printf("story %s: %v", n.Path, err)
 			s.notFound(w)
 			return
 		}
-		pg.Chapters = len(b.Chapters)
-		pg.ListURL = nodeURL(n.Path)
-		if chapter == 0 {
-			for i, ch := range b.Chapters {
-				tl := Tile{URL: fmt.Sprintf("%s/ch/%d", nodeURL(n.Path), i+1), Title: ch.Num + " · " + ch.Title,
-					Letter: strconv.Itoa(i + 1), Gradient: i % 5}
-				if len(b.Scenes[i]) > 0 {
-					tl.Cover = mediaURL(n, fmt.Sprintf("%s/chapter-%d/%s.jpg", n.Images, i+1, b.Scenes[i][0].Img))
-				}
-				pg.Tiles = append(pg.Tiles, tl)
-			}
-			s.render(w, "book.html", pg)
-			return
-		}
-		if chapter > len(b.Chapters) {
-			s.notFound(w)
-			return
-		}
-		s.renderChapter(w, pg, n, b, chapter)
+		pg.Prev, pg.Next = n.PrevNext()
+		pg.Blocks = blocks(n, st)
+		s.render(w, "story.html", pg)
 	}
 }
 
-func (s *Server) renderChapter(w http.ResponseWriter, pg *page, n *catalog.Node, b *book.Book, k int) {
-	ch := b.Chapters[k-1]
-	scenes := b.Scenes[k-1]
-	pg.Chapter = k
-	pg.ChapterNum = ch.Num
-	pg.ChapterTitle = ch.Title
-	pg.Title = ch.Num + ". " + ch.Title + " — " + n.Title
-	places := book.Place(ch.Paras, len(scenes))
+// blocks interleaves figures and paragraphs: each scene goes before the
+// paragraph chosen by story.Place; sides alternate right/left.
+func blocks(n *catalog.Node, st *story.Story) []block {
 	at := map[int]int{}
-	for si, pi := range places {
+	for si, pi := range story.Place(st.Paras, len(st.Scenes)) {
 		at[pi] = si
 	}
-	fig := b.FigureOffset(k - 1)
-	for pi, p := range ch.Paras {
+	var out []block
+	fig := 0
+	for pi, p := range st.Paras {
 		if si, ok := at[pi]; ok {
 			side := "right"
 			if fig%2 == 1 {
 				side = "left"
 			}
 			fig++
-			sc := scenes[si]
-			pg.Blocks = append(pg.Blocks, block{Figure: true, Side: side, Caption: sc.Caption,
-				Img: mediaURL(n, fmt.Sprintf("%s/chapter-%d/%s.jpg", n.Images, k, sc.Img))})
+			sc := st.Scenes[si]
+			out = append(out, block{Figure: true, Side: side, Caption: sc.Caption,
+				Img: mediaURL(n, n.Images+"/"+sc.Img+".jpg")})
 		}
-		pg.Blocks = append(pg.Blocks, block{Text: p, Verse: book.IsVerse(p)})
+		out = append(out, block{Text: p, Verse: story.IsVerse(p)})
 	}
-	if k > 1 {
-		pg.PrevURL = fmt.Sprintf("%s/ch/%d", nodeURL(n.Path), k-1)
-	}
-	if k < len(b.Chapters) {
-		pg.NextURL = fmt.Sprintf("%s/ch/%d", nodeURL(n.Path), k+1)
-	}
-	s.render(w, "chapter.html", pg)
+	return out
 }
 
 func (s *Server) media(w http.ResponseWriter, r *http.Request) {

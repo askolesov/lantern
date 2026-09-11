@@ -88,11 +88,14 @@ func TestSiblings(t *testing.T) {
 	}
 }
 
-func TestBookFields(t *testing.T) {
+func TestStoryFields(t *testing.T) {
 	tr := scanFixture(t)
-	b := tr.Find("books/tiny")
-	if b == nil || b.Type != Book || b.Text != "book.json" || b.Scenes != "scenes.json" || b.Images != "img" {
-		t.Fatalf("book: %+v", b)
+	b := tr.Find("books/tiny/01")
+	if b == nil || b.Type != Story || b.Text != "text.json" || b.Scenes != "scenes.json" || b.Images != "img" || b.Label != "Глава 1" {
+		t.Fatalf("story: %+v", b)
+	}
+	if tr.Find("books/tiny").Type != Collection {
+		t.Fatal("a book is a plain collection")
 	}
 }
 
@@ -137,8 +140,8 @@ func TestResolve(t *testing.T) {
 	if n == nil || n.Path != "audio/kolobok" || f != "kolobok.mp3" {
 		t.Fatalf("resolve: %v %q", n, f)
 	}
-	n, f = tr.Resolve("books/tiny/img/chapter-1/one.jpg")
-	if n == nil || n.Path != "books/tiny" || f != "img/chapter-1/one.jpg" {
+	n, f = tr.Resolve("books/tiny/01/img/one.jpg")
+	if n == nil || n.Path != "books/tiny/01" || f != "img/one.jpg" {
 		t.Fatalf("resolve book: %v %q", n, f)
 	}
 	for _, bad := range []string{"audio/kolobok/../../node.yaml", "audio/kolobok/node.yaml", "audio/kolobok", "nope/x.mp3", "node.yaml", "cover.jpg", "audio/kolobok/../kolobok/kolobok.mp3"} {

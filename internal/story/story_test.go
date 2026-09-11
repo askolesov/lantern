@@ -1,4 +1,4 @@
-package book
+package story
 
 import (
 	"encoding/json"
@@ -40,7 +40,9 @@ func TestPlaceSimple(t *testing.T) {
 
 // Golden: reproduce build.py's placement for all ten Hobbit chapters.
 func TestHobbitGolden(t *testing.T) {
-	var chapters []Chapter
+	var chapters []struct {
+		Paras []string `json:"paras"`
+	}
 	data, err := os.ReadFile("testdata/hobbit-chapters.json")
 	if err != nil {
 		t.Fatal(err)
@@ -74,14 +76,14 @@ func TestHobbitGolden(t *testing.T) {
 }
 
 func TestLoadTiny(t *testing.T) {
-	b, err := Load("../../testdata/content/books/tiny", "book.json", "scenes.json")
+	st, err := Load("../../testdata/content/books/tiny/01", "text.json", "scenes.json")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(b.Chapters) != 2 || len(b.Scenes) != 2 || b.FigureOffset(1) != 2 {
-		t.Fatalf("%+v", b)
+	if len(st.Paras) != 3 || len(st.Scenes) != 2 || st.Scenes[1].Caption != "Два" {
+		t.Fatalf("%+v", st)
 	}
-	if !IsVerse(b.Chapters[0].Paras[1]) {
+	if !IsVerse(st.Paras[1]) {
 		t.Fatal("verse detection")
 	}
 }

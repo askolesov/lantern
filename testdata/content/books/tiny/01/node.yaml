@@ -1,0 +1,6 @@
+type: story
+title: Начало
+label: Глава 1
+text: text.json
+scenes: scenes.json
+images: img

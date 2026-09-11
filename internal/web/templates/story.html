@@ -1,0 +1,16 @@
+{{template "head" .}}
+<body class="reading">
+<header class="bar">{{template "back" .}}</header>
+<main class="story">
+  <div class="heading">{{if .Node.Label}}<div class="num">{{.Node.Label}}</div>{{end}}<h2>{{.Node.Title}}</h2></div>
+  {{range .Blocks}}{{if .Figure}}<figure class="{{.Side}}"><img src="{{.Img}}" alt="{{.Caption}}" loading="lazy" onerror="this.classList.add('missing')"><figcaption>{{.Caption}}</figcaption></figure>
+  {{else}}<p{{if .Verse}} class="verse"{{end}}>{{range $i, $l := lines .Text}}{{if $i}}<br>{{end}}{{$l}}{{end}}</p>
+  {{end}}{{end}}
+  <div class="clear"></div>
+  <nav class="chnav">
+    {{if .Prev}}<a href="{{nodeURL .Prev.Path}}">{{template "icon-back"}}<span>{{.Prev.Title}}</span></a>{{else}}<span class="off">{{template "icon-back"}}</span>{{end}}
+    <a href="{{.BackURL}}">{{template "icon-grid"}}Оглавление</a>
+    {{if .Next}}<a href="{{nodeURL .Next.Path}}"><span>{{.Next.Title}}</span>{{template "icon-fwd"}}</a>{{else}}<span class="off">{{template "icon-fwd"}}</span>{{end}}
+  </nav>
+</main>
+</body></html>

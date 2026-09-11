@@ -48,12 +48,6 @@ main{padding:36px 56px 56px}
 .g3{background:linear-gradient(160deg,#7ba7d9,#4a6fa5)}
 .g4{background:linear-gradient(160deg,#c98bb8,#8d5480)}
 .tile .cap{font-size:15px;font-weight:600;text-align:center;line-height:1.35}
-.tile .badge{display:none;position:absolute;top:10px;right:10px;background:var(--amber);color:var(--plum);font-size:12px;font-weight:700;padding:4px 10px;border-radius:10px;z-index:1}
-.tile.current .badge{display:block}
-.tile.current .cover{outline:3px solid var(--amber);outline-offset:0}
-main[data-book] .grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:28px}
-main[data-book] .cover{aspect-ratio:4/3;border-radius:18px;box-shadow:0 6px 18px rgba(43,32,51,.14)}
-main[data-book] .tile .cap{font-size:14px}
 .empty{font-size:18px}
 
 /* audio player */
@@ -96,38 +90,37 @@ video{width:min(1014px,100%);aspect-ratio:16/9;border-radius:20px;background:#00
 #prev.pill{grid-column:1}#next.pill{grid-column:3}
 
 /* book chapter */
-.chapter{max-width:1000px;margin:0 auto;padding:24px 60px 48px;font-family:"Literata",Georgia,serif;color:var(--text)}
-.chapter .heading{text-align:center;margin-bottom:40px}
-.chapter .num{font-family:"Comfortaa",system-ui,sans-serif;font-size:15px;font-weight:600;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
-.chapter h2{font-size:38px;font-weight:600;color:var(--plum);margin:0}
-.chapter p{font-size:20px;line-height:1.75;margin:0 0 22px;text-wrap:pretty}
-.chapter p.verse{line-height:1.85;padding-left:36px;font-style:italic;color:var(--verse)}
-.chapter figure{width:58%;margin:6px 0 20px;text-align:center}
-.chapter figure.right{float:right;margin-left:32px}
-.chapter figure.left{float:left;margin-right:32px}
-.chapter figure img{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:14px;box-shadow:0 8px 22px rgba(43,32,51,.18);display:block;background:linear-gradient(150deg,#c9a86a,#8b6f43)}
-.chapter figure img.missing{opacity:.35}
-.chapter figcaption{font-size:15px;font-style:italic;color:var(--muted);margin-top:10px}
+.story{max-width:1000px;margin:0 auto;padding:24px 60px 48px;font-family:"Literata",Georgia,serif;color:var(--text)}
+.story .heading{text-align:center;margin-bottom:40px}
+.story .num{font-family:"Comfortaa",system-ui,sans-serif;font-size:15px;font-weight:600;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+.story h2{font-size:38px;font-weight:600;color:var(--plum);margin:0}
+.story p{font-size:20px;line-height:1.75;margin:0 0 22px;text-wrap:pretty}
+.story p.verse{line-height:1.85;padding-left:36px;font-style:italic;color:var(--verse)}
+.story figure{width:58%;margin:6px 0 20px;text-align:center}
+.story figure.right{float:right;margin-left:32px}
+.story figure.left{float:left;margin-right:32px}
+.story figure img{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:14px;box-shadow:0 8px 22px rgba(43,32,51,.18);display:block;background:linear-gradient(150deg,#c9a86a,#8b6f43)}
+.story figure img.missing{opacity:.35}
+.story figcaption{font-size:15px;font-style:italic;color:var(--muted);margin-top:10px}
 .clear{clear:both}
 .chnav{margin-top:56px;padding-top:28px;border-top:2px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:"Comfortaa",system-ui,sans-serif}
+.chnav a span{max-width:28vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chnav a,.chnav .off{display:flex;align-items:center;gap:10px;padding:14px 22px;border-radius:16px;background:var(--paper);border:2px solid var(--line);font-size:16px;font-weight:600;color:var(--ink);text-decoration:none}
 .chnav a svg{width:20px;height:20px}
 .chnav a:hover{background:#f7ecd9}
 .chnav .off{opacity:.4}
 
 /* responsive */
-@media(max-width:1100px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}main[data-book] .grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:760px){
+@media(max-width:1100px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:760px){
   .bar{padding:20px 20px 0;gap:14px}.bar h1{font-size:20px}.back{width:52px;height:52px;border-radius:16px}
   main{padding:20px 20px 40px}.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-  main[data-book] .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-  .tile .cap{font-size:13px}
+    .tile .cap{font-size:13px}
   .player{padding:90px 20px 40px;gap:28px}.player .t{font-size:24px}.controls{gap:24px}
   .round{width:72px;height:72px}.round.main{width:104px;height:104px}
   .vnav{grid-template-columns:1fr 1fr}.vnav .titles{grid-column:1/-1;order:-1}.vnav .t{font-size:18px}
   .pill{font-size:15px;padding:12px 16px}.pill span{max-width:32vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .chapter{padding:12px 20px 40px}.chapter p{font-size:19px}.chapter h2{font-size:28px}
-  .chapter figure,.chapter figure.left,.chapter figure.right{float:none;width:100%;margin:20px 0}
+  .story{padding:12px 20px 40px}.story p{font-size:19px}.story h2{font-size:28px}
+  .story figure,.story figure.left,.story figure.right{float:none;width:100%;margin:20px 0}
   .chnav a,.chnav .off{padding:12px 14px;font-size:14px}
 }
 @media(max-width:480px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

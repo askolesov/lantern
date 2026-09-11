@@ -1,6 +1,6 @@
-// Package book renders a book package: paragraph splitting and picture
-// placement ported one-to-one from the Hobbit reader's build.py.
-package book
+// Package story renders one illustrated text: paragraph splitting and
+// picture placement ported one-to-one from the Hobbit reader's build.py.
+package story
 
 import (
 	"encoding/json"
@@ -11,22 +11,15 @@ import (
 	"unicode/utf8"
 )
 
-type Chapter struct {
-	Num   string   `json:"num"`
-	Title string   `json:"title"`
-	Paras []string `json:"paras"`
-}
-
 type Scene struct {
 	Img     string `json:"img"`
 	Caption string `json:"caption"`
 }
 
-// Book is a loaded package: chapters with already-split paragraphs and one
-// ordered scene list per chapter.
-type Book struct {
-	Chapters []Chapter
-	Scenes   [][]Scene
+// Story is a loaded package: already-split paragraphs and the ordered scenes.
+type Story struct {
+	Paras  []string
+	Scenes []Scene
 }
 
 const splitLimit = 900
@@ -124,39 +117,25 @@ func IsVerse(p string) bool {
 	return strings.Contains(p, "\n") && utf8.RuneCountInString(p) < 600
 }
 
-// Load reads text and scenes JSON from a package directory and splits the
-// paragraphs. Chapters without a scene list get an empty one.
-func Load(dir, text, scenes string) (*Book, error) {
-	var b Book
+// Load reads text.json (["para", …]) and scenes.json ([{img, caption}, …])
+// from a package directory and splits the paragraphs.
+func Load(dir, text, scenes string) (*Story, error) {
+	var st Story
 	data, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(text)))
 	if err != nil {
 		return nil, err
 	}
-	if err := json.Unmarshal(data, &b.Chapters); err != nil {
+	var paras []string
+	if err := json.Unmarshal(data, &paras); err != nil {
 		return nil, err
 	}
+	st.Paras = SplitParas(paras)
 	data, err = os.ReadFile(filepath.Join(dir, filepath.FromSlash(scenes)))
 	if err != nil {
 		return nil, err
 	}
-	if err := json.Unmarshal(data, &b.Scenes); err != nil {
+	if err := json.Unmarshal(data, &st.Scenes); err != nil {
 		return nil, err
 	}
-	for i := range b.Chapters {
-		b.Chapters[i].Paras = SplitParas(b.Chapters[i].Paras)
-	}
-	for len(b.Scenes) < len(b.Chapters) {
-		b.Scenes = append(b.Scenes, nil)
-	}
-	return &b, nil
-}
-
-// FigureOffset is the number of figures in chapters before index k; the
-// left/right alternation counts across the whole book (build.py's global n).
-func (b *Book) FigureOffset(k int) int {
-	n := 0
-	for i := 0; i < k && i < len(b.Scenes); i++ {
-		n += len(b.Scenes[i])
-	}
-	return n
+	return &st, nil
 }
