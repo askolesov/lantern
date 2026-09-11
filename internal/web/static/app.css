@@ -40,7 +40,7 @@ main{padding:36px 56px 56px}
 .tile .art{position:relative}
 .tile.stack .art::before,.tile.stack .art::after{content:"";position:absolute;border-radius:22px;background:var(--stack1);inset:8px -6px -6px 8px}
 .tile.stack .art::after{background:var(--stack2);inset:4px -3px -3px 4px}
-.cover{position:relative;display:block;width:100%;aspect-ratio:1;border-radius:22px;object-fit:cover;box-shadow:0 8px 20px rgba(43,32,51,.16);background:var(--stack2)}
+.cover{position:relative;z-index:1;display:block;width:100%;aspect-ratio:1;border-radius:22px;object-fit:cover;box-shadow:0 8px 20px rgba(43,32,51,.16);background:var(--stack2)}
 .cover.ph{display:flex;align-items:center;justify-content:center;color:#fff6e9;font-weight:700;font-size:clamp(40px,6vw,64px);text-shadow:0 3px 10px rgba(43,32,51,.25)}
 .g0{background:linear-gradient(160deg,#f9c15c,#e07a4f)}
 .g1{background:linear-gradient(160deg,#e58f6e,#b85c48)}

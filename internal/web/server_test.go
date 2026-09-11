@@ -153,7 +153,7 @@ func TestMediaRangeAndTraversal(t *testing.T) {
 func TestStoryPage(t *testing.T) {
 	ts := newTestServer(t)
 	_, body := get(t, ts, "/n/books/tiny")
-	if !strings.Contains(body, `href="/n/books/tiny/01"`) || !strings.Contains(body, `src="/m/books/tiny/01/cover.jpg"`) {
+	if !strings.Contains(body, `href="/n/books/tiny/01"`) || !strings.Contains(body, `src="/m/books/tiny/01/cover.jpg"`) || !strings.Contains(body, "Глава 1 · Начало") {
 		t.Error("book collection lists chapters as tiles")
 	}
 	_, body = get(t, ts, "/n/books/tiny/01")

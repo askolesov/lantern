@@ -161,6 +161,9 @@ type block struct {
 func tile(n *catalog.Node) Tile {
 	t := Tile{URL: nodeURL(n.Path), Title: n.Title, Stack: n.Type == catalog.Collection,
 		Letter: firstLetter(n.Title), Gradient: gradientOf(n.Path)}
+	if n.Label != "" {
+		t.Title = n.Label + " · " + n.Title
+	}
 	if n.Cover != "" {
 		t.Cover = mediaURL(n, n.Cover)
 	}
