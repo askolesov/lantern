@@ -1,0 +1,5 @@
+/lantern
+/dist/
+/tools/**/__pycache__/
+/tools/**/.venv/
+.DS_Store
