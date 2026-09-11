@@ -34,3 +34,15 @@ make test
 Image from GitHub Actions on a `v*` tag → `ghcr.io/askolesov/lantern`. Manifests in
 `deploy/k8s/` (`make deploy`), content pushed with `make sync` (rsync to the node; the Mac
 folder is the master copy). LAN + Tailscale only.
+
+### First deploy (once)
+
+```
+ssh sidequest-k3s 'sudo mkdir -p /srv/lantern/content && sudo chown $USER /srv/lantern/content'
+make sync                      # content → node (needs the SSH agent: ssh-add)
+make deploy                    # kubectl apply -k deploy/k8s (kubeconfig for the k3s cluster)
+open http://lantern.192-168-56-83.nip.io
+```
+
+New release: bump `newTag` in `deploy/k8s/kustomization.yaml`, tag `vX.Y.Z`, push the tag,
+wait for the `image` workflow, `make deploy`. New content: `make sync` only.
