@@ -66,6 +66,18 @@ func TestHidden(t *testing.T) {
 	if h == nil || !h.Hidden {
 		t.Fatal("hidden node must still be findable")
 	}
+	found := false
+	for _, p := range tr.Problems {
+		if p.Path == "audio/hidden-one" && !p.Hidden {
+			t.Errorf("problem inside a hidden node must be marked hidden: %v", p)
+		}
+		if p.Path == "audio/hidden-one" && p.Hidden && strings.Contains(p.Msg, "missing cover") {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("hidden node without a cover must still be reported (as hidden)")
+	}
 }
 
 func TestSiblings(t *testing.T) {

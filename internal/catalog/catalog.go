@@ -54,17 +54,23 @@ type Node struct {
 	Children []*Node // collection only; sorted; includes hidden nodes
 }
 
-// Problem is one validation failure found while scanning.
+// Problem is one validation failure found while scanning. Hidden marks
+// problems inside a hidden subtree: reported, but not blocking (check exits 0).
 type Problem struct {
-	Path string
-	Msg  string
+	Path   string
+	Msg    string
+	Hidden bool
 }
 
 func (p Problem) String() string {
-	if p.Path == "" {
-		return "(root): " + p.Msg
+	path := p.Path
+	if path == "" {
+		path = "(root)"
 	}
-	return p.Path + ": " + p.Msg
+	if p.Hidden {
+		return path + ": " + p.Msg + " (hidden)"
+	}
+	return path + ": " + p.Msg
 }
 
 // Tree is the result of a scan.
@@ -97,13 +103,13 @@ func Scan(root string) (*Tree, error) {
 		return nil, fmt.Errorf("content root %q is not a directory", root)
 	}
 	t := &Tree{byPath: map[string]*Node{}}
-	n, probs := load(abs, "", nil)
+	n, probs := load(abs, "", nil, false)
 	t.Problems = append(t.Problems, probs...)
 	if n == nil {
 		return t, errors.New("content root has no valid " + NodeFile)
 	}
 	if n.Type != Collection {
-		t.Problems = append(t.Problems, Problem{"", "root must be a collection"})
+		t.Problems = append(t.Problems, Problem{"", "root must be a collection", false})
 		return t, errors.New("content root is not a collection")
 	}
 	t.Root = n
@@ -118,7 +124,7 @@ func (t *Tree) walk(n *Node) {
 	}
 	entries, err := os.ReadDir(n.Dir)
 	if err != nil {
-		t.Problems = append(t.Problems, Problem{n.Path, "cannot read directory: " + err.Error()})
+		t.Problems = append(t.Problems, Problem{n.Path, "cannot read directory: " + err.Error(), n.Hidden || hiddenAbove(n)})
 		return
 	}
 	names := make([]string, 0, len(entries))
@@ -133,7 +139,7 @@ func (t *Tree) walk(n *Node) {
 	}
 	sort.Slice(names, func(i, j int) bool { return natLess(names[i], names[j]) })
 	for _, name := range names {
-		child, probs := load(filepath.Join(n.Dir, name), path.Join(n.Path, name), n)
+		child, probs := load(filepath.Join(n.Dir, name), path.Join(n.Path, name), n, n.Hidden || hiddenAbove(n))
 		t.Problems = append(t.Problems, probs...)
 		if child == nil {
 			continue
@@ -143,12 +149,23 @@ func (t *Tree) walk(n *Node) {
 	}
 }
 
+// hiddenAbove reports whether any ancestor of n is hidden.
+func hiddenAbove(n *Node) bool {
+	for p := n.Parent; p != nil; p = p.Parent {
+		if p.Hidden {
+			return true
+		}
+	}
+	return false
+}
+
 // load parses one node directory. It returns nil when the node is unusable;
 // cosmetic problems (missing cover) are reported but the node is kept.
-func load(dir, rel string, parent *Node) (*Node, []Problem) {
+// hidden marks problems of nodes inside a hidden subtree.
+func load(dir, rel string, parent *Node, hidden bool) (*Node, []Problem) {
 	var probs []Problem
 	fail := func(msg string) (*Node, []Problem) {
-		return nil, append(probs, Problem{rel, msg})
+		return nil, append(probs, Problem{rel, msg, hidden})
 	}
 	data, err := os.ReadFile(filepath.Join(dir, NodeFile))
 	if err != nil {
@@ -158,6 +175,7 @@ func load(dir, rel string, parent *Node) (*Node, []Problem) {
 	if err := yaml.Unmarshal(data, &raw); err != nil {
 		return fail("bad yaml: " + err.Error())
 	}
+	hidden = hidden || raw.Hidden
 	n := &Node{Path: rel, Dir: dir, Type: Type(raw.Type), Title: strings.TrimSpace(raw.Title),
 		Hidden: raw.Hidden, Source: raw.Source, Label: strings.TrimSpace(raw.Label), Parent: parent}
 	if n.Title == "" {
@@ -165,16 +183,16 @@ func load(dir, rel string, parent *Node) (*Node, []Problem) {
 	}
 	inside := func(field, p string) (string, bool) {
 		if p == "" {
-			probs = append(probs, Problem{rel, field + " is required"})
+			probs = append(probs, Problem{rel, field + " is required", hidden})
 			return "", false
 		}
 		clean := filepath.ToSlash(filepath.Clean(p))
 		if path.IsAbs(clean) || clean == ".." || strings.HasPrefix(clean, "../") {
-			probs = append(probs, Problem{rel, field + " escapes the node directory: " + p})
+			probs = append(probs, Problem{rel, field + " escapes the node directory: " + p, hidden})
 			return "", false
 		}
 		if _, err := os.Stat(filepath.Join(dir, filepath.FromSlash(clean))); err != nil {
-			probs = append(probs, Problem{rel, field + " not found: " + p})
+			probs = append(probs, Problem{rel, field + " not found: " + p, hidden})
 			return "", false
 		}
 		return clean, true
@@ -207,7 +225,7 @@ func load(dir, rel string, parent *Node) (*Node, []Problem) {
 		}
 	}
 	if n.Cover == "" && parent != nil {
-		probs = append(probs, Problem{rel, "missing cover (cover.jpg|png|webp)"})
+		probs = append(probs, Problem{rel, "missing cover (cover.jpg|png|webp)", hidden})
 	}
 	return n, probs
 }

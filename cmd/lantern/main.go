@@ -41,8 +41,12 @@ func main() {
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
 		}
+		blocking := 0
 		for _, p := range t.Problems {
 			fmt.Println(p)
+			if !p.Hidden {
+				blocking++
+			}
 		}
 		n := 0
 		var count func(*catalog.Node)
@@ -55,8 +59,8 @@ func main() {
 		if t.Root != nil {
 			count(t.Root)
 		}
-		fmt.Printf("%d nodes, %d problems\n", n, len(t.Problems))
-		if err != nil || len(t.Problems) > 0 {
+		fmt.Printf("%d nodes, %d problems (%d in hidden subtrees, not blocking)\n", n, len(t.Problems), len(t.Problems)-blocking)
+		if err != nil || blocking > 0 {
 			os.Exit(1)
 		}
 	default:
