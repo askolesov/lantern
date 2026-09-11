@@ -209,6 +209,12 @@ Verification of the port: render Hobbit chapter 1 with the Go server and with th
   audio/  video/  books/hobbit/…            the tree of §2
 ```
 
+**Player and tools do not mix** (decision 2026-09-11). Same repo, hard boundary:
+- `tools/` is not part of the Go module and is excluded from the Docker image
+  (`.dockerignore`), so the binary cannot depend on it;
+- no code is shared in either direction — the only contract is the package format of §2;
+- `tools/` has its own `README.md`; it is the one place where Python lives.
+
 Hobbit migration splits the old folder in two:
 - **Tools → `lantern/tools/book/`**: `condense.py`, `gen_images.py`, `shrink.py`,
   `scenes_*.py`, old `CLAUDE.md`/`README.md`. `build.py` is replaced by `export.py`, which
