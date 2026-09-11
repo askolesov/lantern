@@ -38,11 +38,14 @@ folder is the master copy). LAN + Tailscale only.
 ### First deploy (once)
 
 ```
-ssh sidequest-k3s 'sudo mkdir -p /srv/lantern/content && sudo chown $USER /srv/lantern/content'
-make sync                      # content → node (needs the SSH agent: ssh-add)
-make deploy                    # kubectl apply -k deploy/k8s (kubeconfig for the k3s cluster)
+ssh sidequest-k3s 'sudo apt install -y rsync && sudo mkdir -p /srv/lantern/content && sudo chown $USER /srv/lantern/content'
+make sync                      # content → node over SSH (key: ~/.ssh/id_ed25519, registered on the node 2026-09-11)
+make deploy                    # kubectl apply -k deploy/k8s (KUBECONFIG=~/.kube/sidequest.yaml)
 open http://lantern.192-168-56-83.nip.io
 ```
+
+Done 2026-09-11 except `apt install rsync` (needs sudo). The first content load went through a
+temporary busybox pod mounting the PVC (`tar | kubectl exec -i … tar x`, then `chown -R 1000:1000`).
 
 New release: bump `newTag` in `deploy/k8s/kustomization.yaml`, tag `vX.Y.Z`, push the tag,
 wait for the `image` workflow, `make deploy`. New content: `make sync` only.
