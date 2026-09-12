@@ -11,4 +11,4 @@ resources:
   - ingress.yaml
 images:
   - name: ghcr.io/askolesov/lantern
-    newTag: v0.2.0
+    newTag: v0.3.0
