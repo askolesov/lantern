@@ -24,11 +24,17 @@ one changes. No hidden memory: notes go here or in the spec.
 - Chapter dirs are `NN-<slug>/`; the catalog draws the position badge on every tile whose dir name
   starts with a digit, so chapters sharing one cover stay distinguishable (added 2026-09-11).
 - `books/hobbit/NN/` chapter 10 is `hidden: true` until it has pictures (08–09 unhidden 2026-09-12).
-- `lullabies/` (user decision 2026-09-12): a top-level section «Колыбельные» with exactly two
-  sub-collections — `audio/` «Только аудио» (mp3 from children's sites, mishka-knizhka.ru; 10 songs:
-  Soviet classics + two folk ones) and `video/` «С видео» (mp4 ≤720p from YouTube via `yt-dlp`, the
-  original performers: Толкунова, Камбурова, Ведищева, Мосфильм fragments, Суханов; 8 videos). Time-tested
-  songs only, no modern AI-generated lullabies. Covers = site og:image / YouTube thumbnail; leaf dirs `NN-<slug>/`.
+- **Five top-level sections (user decision 2026-09-12), one shelf row:** `audio/` «Сказки аудио»,
+  `video/` «Сказки видео» (ex-«Мультфильмы»), `books/` «Книги», `lullabies-audio/` «Колыбельные аудио»
+  (mp3 from mishka-knizhka.ru, 10 time-tested songs: Soviet classics + two folk), `lullabies-video/`
+  «Колыбельные видео» (mp4 ≤720p from YouTube via `yt-dlp`, original performers, 8 videos). No wrapper
+  collection for lullabies. Time-tested songs only, no modern AI-generated lullabies. Song dirs `NN-<slug>/`,
+  covers = site og:image / YouTube thumbnail. Root order is the natural sort of dir names
+  (audio, books, lullabies-audio, lullabies-video, video) — rename dirs if a different order is wanted.
+- **Section covers** are generated (gpt-image-1, 1024² medium ≈ $0.04, saved 800² jpg) by
+  `tools/covers/gen_covers.py`, one dominant color + one object per section so the tiles are
+  distinguishable at a glance; same house style as the Hobbit pictures. Never overwrites — delete first.
+  Generated 2026-09-12 (five tiles). Real money: only on request.
 
 ## Operations
 
