@@ -1,9 +1,9 @@
-# Hobbit pipeline (tools/book) — status 2026-09-12: ch. 1–7 COMPLETE (condensed + pictures); ch. 8–9 READY (prompts written, 12 + 11 pictures NOT generated ≈ $1.50); ch. 10 NOT READY (full text, old draft scenes)
+# Hobbit pipeline (tools/book) — status 2026-09-12: ch. 1–9 COMPLETE (condensed + pictures, live on the node); ch. 10 NOT READY (full text, old draft scenes)
 
 **Where things are since 2026-09-11 (Lantern migration).** These scripts are the *tools*; the
 *data* is the package `~/Documents/projects-my/lantern-content/books/hobbit/` (not in git):
 `node.yaml` (collection) + `cover.jpg`, then one **story** dir per chapter `NN/` with
-`node.yaml` (title, label, `hidden: true` for ch. 8–10 until they have pictures), `cover.jpg`
+`node.yaml` (title, label, `hidden: true` for ch. 10 until it has pictures), `cover.jpg`
 (= first scene), `text.json`, `scenes.json`, `img/<slug>.{png,jpg}`. `condense.py` writes
 `src/condensed.json`; `export.py` splits it into the `NN/` dirs (never overwrites an existing
 `node.yaml`). `src/` also holds `chapters.full.json`, `img-old/` (rejected pictures), the
@@ -38,8 +38,8 @@ and the target picture density. Key rules:
   | 5 | condensed 9.2k | 11 (`05_*`) | done 2026-09-06 |
   | 6 | condensed 9.5k | 11 (`06_*`) | done 2026-09-08, `BASE_MID` style (1 regenerated: extra elf; reject in `_old/chapter-6/mid-rejects`) |
   | 7 | condensed 10.0k (2026-09-07) | 11 (`07_*`) | done 2026-09-10, `BASE_MID` style, all 11 accepted on contact sheet; old 11 in `_old` |
-  | 8 | condensed 11.5k (2026-09-07, ~10 min — longest chapter, cut further only if asked) | 12 (`08_*`) | NOT generated (~$0.78) |
-  | 9 | condensed 10.8k (2026-09-12, ~10 min — like ch. 7–8; cut further only if asked) | 11 (`09_*`) | NOT generated (~$0.72) |
+  | 8 | condensed 11.5k (2026-09-07, ~10 min — longest chapter, cut further only if asked) | 12 (`08_*`) | done 2026-09-12, `BASE_MID`, all 12 accepted on contact sheet |
+  | 9 | condensed 10.8k (2026-09-12, ~10 min — like ch. 7–8; cut further only if asked) | 11 (`09_*`) | done 2026-09-12, `BASE_MID`, all 11 accepted; `last_barrel` shows Bilbo visible among the elves (prompt asked for a faint outline) — regenerate if the user minds |
   | 10 | full text | old draft list in `gen_images.py` (`10_*`) | 14 placeholders |
 
   Old `7_*`/`8_*` draft entries were removed from `gen_images.py` 2026-09-07, `9_*` on 2026-09-12 (all still in `scenes_4_10.py`). **Always run `gen_images.py` with explicit scene names** — with no args it would also generate the 14 old ch. 10 drafts.
@@ -52,5 +52,5 @@ and the target picture density. Key rules:
 - Density target: one picture per ~1400 characters of text; verify min/max spacing after build (snippet in README).
 - Text source for further chapters: lyoshick.narod.ru/Texts/Tolk/HobbitNN.html.
 - Image cost is real money (~$0.065 each at medium). Before any batch, tell the user the count and estimated cost and confirm; stop on repeated 429s — it means credits are out.
-- **DO NOT generate images unless the user explicitly asks in the current session** (user decision 2026-08-28). Chapters 7–10 keep SVG placeholders for now.
+- **DO NOT generate images unless the user explicitly asks in the current session** (user decision 2026-08-28). Chapter 10 keeps placeholders for now.
 - Product context / idea: docs/vision.md
