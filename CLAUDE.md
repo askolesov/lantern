@@ -24,6 +24,11 @@ one changes. No hidden memory: notes go here or in the spec.
 - Chapter dirs are `NN-<slug>/`; the catalog draws the position badge on every tile whose dir name
   starts with a digit, so chapters sharing one cover stay distinguishable (added 2026-09-11).
 - `books/hobbit/NN/` chapter 10 is `hidden: true` until it has pictures (08–09 unhidden 2026-09-12).
+- `lullabies/` (user decision 2026-09-12): a top-level section «Колыбельные» with exactly two
+  sub-collections — `audio/` «Только аудио» (mp3 from children's sites, mishka-knizhka.ru; 10 songs:
+  Soviet classics + two folk ones) and `video/` «С видео» (mp4 ≤720p from YouTube via `yt-dlp`, the
+  original performers: Толкунова, Камбурова, Ведищева, Мосфильм fragments, Суханов; 8 videos). Time-tested
+  songs only, no modern AI-generated lullabies. Covers = site og:image / YouTube thumbnail; leaf dirs `NN-<slug>/`.
 
 ## Operations
 
