@@ -38,6 +38,7 @@ type Node struct {
 	Type   Type
 	Title  string
 	Hidden bool
+	Group  string // optional label; the parent catalog puts children with the same label under one header
 	Cover  string // file name of the cover next to node.yaml, "" if missing
 
 	// audio / video
@@ -84,6 +85,7 @@ type rawNode struct {
 	Type   string `yaml:"type"`
 	Title  string `yaml:"title"`
 	Hidden bool   `yaml:"hidden"`
+	Group  string `yaml:"group"`
 	File   string `yaml:"file"`
 	Source string `yaml:"source"`
 	Label  string `yaml:"label"`
@@ -177,7 +179,7 @@ func load(dir, rel string, parent *Node, hidden bool) (*Node, []Problem) {
 	}
 	hidden = hidden || raw.Hidden
 	n := &Node{Path: rel, Dir: dir, Type: Type(raw.Type), Title: strings.TrimSpace(raw.Title),
-		Hidden: raw.Hidden, Source: raw.Source, Label: strings.TrimSpace(raw.Label), Parent: parent}
+		Hidden: raw.Hidden, Group: strings.TrimSpace(raw.Group), Source: raw.Source, Label: strings.TrimSpace(raw.Label), Parent: parent}
 	if n.Title == "" {
 		return fail("title is required")
 	}

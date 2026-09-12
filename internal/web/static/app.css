@@ -36,6 +36,8 @@ svg{display:block}
 /* catalog grid */
 main{padding:36px 56px 56px}
 .grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:32px}
+.grid+.group{margin-top:44px}
+.group{font-size:26px;font-weight:700;color:var(--plum);margin:0 0 18px;padding-left:6px}
 .tile{display:flex;flex-direction:column;gap:12px;text-decoration:none;color:var(--ink)}
 .tile .art{position:relative}
 .tile.stack .art::before,.tile.stack .art::after{content:"";position:absolute;border-radius:22px;background:var(--stack1);inset:8px -6px -6px 8px}
@@ -115,7 +117,7 @@ video{width:min(1014px,100%);aspect-ratio:16/9;border-radius:20px;background:#00
 @media(max-width:1100px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:760px){
   .bar{padding:20px 20px 0;gap:14px}.bar h1{font-size:20px}.back{width:52px;height:52px;border-radius:16px}
   main{padding:20px 20px 40px}.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-    .tile .cap{font-size:13px}.tile .num{min-width:34px;height:34px;font-size:18px;left:8px;top:8px;border-radius:11px}
+    .tile .cap{font-size:13px}.group{font-size:20px;margin-bottom:12px}.grid+.group{margin-top:28px}.tile .num{min-width:34px;height:34px;font-size:18px;left:8px;top:8px;border-radius:11px}
   .player{padding:90px 20px 40px;gap:28px}.player .t{font-size:24px}.controls{gap:24px}
   .round{width:72px;height:72px}.round.main{width:104px;height:104px}
   .vnav{grid-template-columns:1fr 1fr}.vnav .titles{grid-column:1/-1;order:-1}.vnav .t{font-size:18px}

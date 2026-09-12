@@ -117,6 +117,7 @@ func toJSON(v any) template.JS {
 // ---- view models ----
 
 type Tile struct {
+	Path     string // node path, for the position-badge rule
 	URL      string
 	Title    string
 	Cover    string // media URL or ""
@@ -124,6 +125,15 @@ type Tile struct {
 	Gradient int
 	Stack    bool
 	Num      int // 1-based position, shown as a badge when the dir name starts with a digit
+}
+
+// Group is one run of tiles on a catalog page: the children that share a
+// `group:` label, under that label as a header. Groups come in the order the
+// label first appears in the listing; children without a label form one
+// untitled group at the end.
+type Group struct {
+	Title string
+	Tiles []Tile
 }
 
 type Track struct {
@@ -140,7 +150,7 @@ type page struct {
 	Parent   *catalog.Node
 	BackURL  string
 	IsRoot   bool
-	Tiles    []Tile
+	Groups   []Group // catalog page
 	Tracks   []Track
 	Index    int
 	Cover    string
@@ -161,7 +171,7 @@ type block struct {
 }
 
 func tile(n *catalog.Node) Tile {
-	t := Tile{URL: nodeURL(n.Path), Title: n.Title, Stack: n.Type == catalog.Collection,
+	t := Tile{Path: n.Path, URL: nodeURL(n.Path), Title: n.Title, Stack: n.Type == catalog.Collection,
 		Letter: firstLetter(n.Title), Gradient: gradientOf(n.Path)}
 	if n.Label != "" {
 		t.Title = n.Label + " · " + n.Title
@@ -226,13 +236,7 @@ func (s *Server) node(w http.ResponseWriter, r *http.Request) {
 	}
 	switch n.Type {
 	case catalog.Collection:
-		for i, c := range n.Visible() {
-			t := tile(c)
-			if base := path.Base(c.Path); base != "" && base[0] >= '0' && base[0] <= '9' {
-				t.Num = i + 1
-			}
-			pg.Tiles = append(pg.Tiles, t)
-		}
+		pg.Groups = groups(n)
 		s.render(w, "catalog.html", pg)
 	case catalog.Audio, catalog.Video:
 		for _, sib := range n.Siblings() {
@@ -262,6 +266,42 @@ func (s *Server) node(w http.ResponseWriter, r *http.Request) {
 		pg.Blocks = blocks(n, st)
 		s.render(w, "story.html", pg)
 	}
+}
+
+// groups lays out the visible children of a collection by their `group:`
+// label (see Group). Position badges count within each group.
+func groups(n *catalog.Node) []Group {
+	var out []Group
+	index := map[string]int{}
+	var loose []*catalog.Node
+	for _, c := range n.Visible() {
+		if c.Group == "" {
+			loose = append(loose, c)
+			continue
+		}
+		i, ok := index[c.Group]
+		if !ok {
+			i = len(out)
+			index[c.Group] = i
+			out = append(out, Group{Title: c.Group})
+		}
+		out[i].Tiles = append(out[i].Tiles, tile(c))
+	}
+	if len(loose) > 0 {
+		g := Group{}
+		for _, c := range loose {
+			g.Tiles = append(g.Tiles, tile(c))
+		}
+		out = append(out, g)
+	}
+	for gi := range out {
+		for i := range out[gi].Tiles {
+			if base := path.Base(out[gi].Tiles[i].Path); base != "" && base[0] >= '0' && base[0] <= '9' {
+				out[gi].Tiles[i].Num = i + 1
+			}
+		}
+	}
+	return out
 }
 
 // blocks interleaves figures and paragraphs: each scene goes before the

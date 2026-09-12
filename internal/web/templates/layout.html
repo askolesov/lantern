@@ -26,9 +26,11 @@
 
 {{define "cover"}}{{if .Cover}}<img class="cover" src="{{.Cover}}" alt="" loading="lazy">{{else}}<div class="cover ph g{{.Gradient}}"><span>{{.Letter}}</span></div>{{end}}{{end}}
 
-{{define "tiles"}}<div class="grid">
+{{define "tiles"}}{{range .Groups}}{{if .Title}}<h2 class="group">{{.Title}}</h2>
+{{end}}<div class="grid">
 {{range .Tiles}}<a class="tile{{if .Stack}} stack{{end}}" href="{{.URL}}">
   <div class="art">{{template "cover" .}}{{if .Num}}<span class="num">{{.Num}}</span>{{end}}</div>
   <div class="cap">{{.Title}}</div>
 </a>
-{{end}}</div>{{end}}
+{{end}}</div>
+{{end}}{{end}}

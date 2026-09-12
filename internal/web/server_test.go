@@ -198,3 +198,22 @@ func TestStaticAndManifest(t *testing.T) {
 		}
 	}
 }
+
+func TestGroups(t *testing.T) {
+	ts := newTestServer(t)
+	_, body := get(t, ts, "/")
+	h := strings.Index(body, `<h2 class="group">Сказки</h2>`)
+	audio := strings.Index(body, `href="/n/audio"`)
+	books := strings.Index(body, `href="/n/books"`)
+	video := strings.Index(body, `href="/n/video"`)
+	if h < 0 || audio < h || books < audio || video < books {
+		t.Fatalf("labelled children under one header first, unlabelled last (h=%d audio=%d books=%d video=%d)", h, audio, books, video)
+	}
+	if strings.Count(body, `class="group"`) != 1 || strings.Count(body, `class="grid"`) != 2 {
+		t.Errorf("one header and two grids expected, got %d headers, %d grids", strings.Count(body, `class="group"`), strings.Count(body, `class="grid"`))
+	}
+	_, body = get(t, ts, "/n/audio")
+	if strings.Contains(body, `class="group"`) {
+		t.Error("a collection without labelled children has no headers")
+	}
+}

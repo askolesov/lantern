@@ -48,6 +48,7 @@ Common header, all types:
 type: collection | audio | video | story
 title: Простоквашино
 hidden: false          # optional, default false — excluded from the UI, kept on disk
+group: Сказки          # optional label (any type); the parent catalog puts children with the same label under one header
 ```
 
 Type-specific tail:
@@ -118,6 +119,13 @@ rules below are behaviour, not looks.
 - A tile whose directory name starts with a digit shows its 1-based position as a badge in the
   tile's corner (added 2026-09-11): chapters of one book usually share a cover, and the badge is
   how a non-reader tells them apart.
+- Groups (added 2026-09-12): children carrying the same `group:` label are drawn under one header
+  with that label; groups come in the order the label first appears in the listing; children
+  without a label form one untitled run at the end. The label is a plain string repeated in each
+  child's `node.yaml` — a typo simply shows as a second header. Position badges count within a
+  group. Chosen over an `inline` wrapper collection: no extra directory level, stable paths, no
+  special case for "back". The root uses it for «Сказки» (Слушать / Смотреть / Читать) and
+  «Колыбельные» (Слушать / Смотреть).
 
 ### 3.2 Audio player (`audio`)
 

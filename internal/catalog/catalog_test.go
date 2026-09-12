@@ -162,3 +162,13 @@ func TestResolve(t *testing.T) {
 		}
 	}
 }
+
+func TestGroup(t *testing.T) {
+	tr := scanFixture(t)
+	if g := tr.Find("audio").Group; g != "Сказки" {
+		t.Fatalf("group label: %q", g)
+	}
+	if g := tr.Find("video").Group; g != "" {
+		t.Fatalf("no label expected: %q", g)
+	}
+}
