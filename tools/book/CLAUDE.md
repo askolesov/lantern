@@ -1,4 +1,4 @@
-# Hobbit pipeline (tools/book) — status 2026-09-11: ch. 1–7 COMPLETE (condensed + pictures); ch. 8 READY (prompts written, 12 pictures NOT generated ≈ $0.78); ch. 9–10 NOT READY (full text, old draft scenes)
+# Hobbit pipeline (tools/book) — status 2026-09-12: ch. 1–7 COMPLETE (condensed + pictures); ch. 8–9 READY (prompts written, 12 + 11 pictures NOT generated ≈ $1.50); ch. 10 NOT READY (full text, old draft scenes)
 
 **Where things are since 2026-09-11 (Lantern migration).** These scripts are the *tools*; the
 *data* is the package `~/Documents/projects-my/lantern-content/books/hobbit/` (not in git):
@@ -39,9 +39,11 @@ and the target picture density. Key rules:
   | 6 | condensed 9.5k | 11 (`06_*`) | done 2026-09-08, `BASE_MID` style (1 regenerated: extra elf; reject in `_old/chapter-6/mid-rejects`) |
   | 7 | condensed 10.0k (2026-09-07) | 11 (`07_*`) | done 2026-09-10, `BASE_MID` style, all 11 accepted on contact sheet; old 11 in `_old` |
   | 8 | condensed 11.5k (2026-09-07, ~10 min — longest chapter, cut further only if asked) | 12 (`08_*`) | NOT generated (~$0.78) |
-  | 9–10 | full text | old draft lists in `build.py` / `gen_images.py` (`9_*`, `10_*`) | 45 placeholders |
+  | 9 | condensed 10.8k (2026-09-12, ~10 min — like ch. 7–8; cut further only if asked) | 11 (`09_*`) | NOT generated (~$0.72) |
+  | 10 | full text | old draft list in `gen_images.py` (`10_*`) | 14 placeholders |
 
-  Old `7_*`/`8_*` draft entries were removed from `gen_images.py` 2026-09-07 (still in `scenes_4_10.py`). **Always run `gen_images.py` with explicit scene names** — with no args it would also generate the 45 old ch. 9–10 drafts.
+  Old `7_*`/`8_*` draft entries were removed from `gen_images.py` 2026-09-07, `9_*` on 2026-09-12 (all still in `scenes_4_10.py`). **Always run `gen_images.py` with explicit scene names** — with no args it would also generate the 14 old ch. 10 drafts.
+  Lesson 2026-09-12: the `CHARS` injection matches substrings, so `himself`/`itself` inject the elf description and `Elvenking's caves` injects the king with his throne — check every new prompt with a keyword dump (ast-parse `SCENES`, list matching `CHARS` keys) before generating; say `he is` / `the palace caves` instead.
 - New images: add to `SCENES` in `gen_images.py`, then `python3 gen_images.py [scene names…]` (no args = all missing), then `python3 shrink.py`.
   **Keys live in `~/Documents/projects-my/life/dossiers/2026-08-local-ai-hardware/.env`** (gitignored; user decision 2026-09-04): `OPENAI_API_KEY` (direct, gpt-image-1, ~$0.065/picture at medium 1536x1024 — preferred) and `OPENROUTER_API_KEY` (fallback backend in `gen_images.py`; use the `/images/generations` route, the chat route ignores size/quality and cost $0.28 for a square image). Load with `export $(grep -v '^#' <that .env> | xargs)`. Never copy a key into this folder.
 - Keep `BASE` + per-scene `CHARS` injection in `gen_images.py` (never list all characters in the base prompt — it produces a 'cast lineup' in every image).
