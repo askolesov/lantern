@@ -11,8 +11,10 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -32,13 +34,16 @@ type Server struct {
 	content string
 	tmpl    *template.Template
 	mux     *http.ServeMux
+	started string // version stamp for static asset URLs
 }
 
 // New builds the handler for a content directory.
 func New(content string) (*Server, error) {
+	started := strconv.FormatInt(time.Now().Unix(), 10)
 	funcs := template.FuncMap{
 		"nodeURL":  nodeURL,
 		"mediaURL": mediaURL,
+		"static":   func(name string) string { return "/static/" + name + "?v=" + started },
 		"json":     toJSON,
 		"lines":    func(s string) []string { return strings.Split(s, "\n") },
 		"add":      func(a, b int) int { return a + b },
@@ -47,7 +52,7 @@ func New(content string) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := &Server{content: content, tmpl: t, mux: http.NewServeMux()}
+	s := &Server{content: content, tmpl: t, mux: http.NewServeMux(), started: started}
 	static, _ := fs.Sub(staticFS, "static")
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(static)))
 	s.mux.HandleFunc("GET /manifest.webmanifest", s.manifest)
@@ -97,8 +102,16 @@ func nodeURL(p string) string {
 	return "/n/" + escapePath(p)
 }
 
+// mediaURL points at a file inside a node. The file's mtime rides along as
+// ?v=…, so a replaced cover or track gets a new URL and old caches (the iPad
+// held covers for a day) never show stale bytes; versioned media is served
+// immutable, see media().
 func mediaURL(n *catalog.Node, file string) string {
-	return "/m/" + escapePath(n.Path) + "/" + escapePath(file)
+	u := "/m/" + escapePath(n.Path) + "/" + escapePath(file)
+	if st, err := os.Stat(filepath.Join(n.Dir, filepath.FromSlash(file))); err == nil {
+		u += "?v=" + strconv.FormatInt(st.ModTime().Unix(), 10)
+	}
+	return u
 }
 
 func escapePath(p string) string {
@@ -207,6 +220,7 @@ func coverOf(n *catalog.Node) string {
 
 func (s *Server) render(w http.ResponseWriter, name string, p *page) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache") // pages carry the versioned URLs, so they must always revalidate
 	if err := s.tmpl.ExecuteTemplate(w, name, p); err != nil {
 		log.Printf("render %s: %v", name, err)
 	}
@@ -340,7 +354,11 @@ func (s *Server) media(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	w.Header().Set("Cache-Control", "public, max-age=86400")
+	if r.URL.Query().Get("v") != "" {
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	} else {
+		w.Header().Set("Cache-Control", "no-cache")
+	}
 	http.ServeFile(w, r, filepath.Join(n.Dir, filepath.FromSlash(file)))
 }
 

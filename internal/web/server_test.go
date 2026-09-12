@@ -54,7 +54,7 @@ func TestRootCatalog(t *testing.T) {
 	if code != 200 {
 		t.Fatalf("status %d", code)
 	}
-	for _, want := range []string{"Фонарик", `href="/n/audio"`, "Сказки", "Книги", `class="tile stack"`, "/static/app.css"} {
+	for _, want := range []string{"Фонарик", `href="/n/audio"`, "Сказки", "Книги", `class="tile stack"`, "/static/app.css?v="} {
 		if !strings.Contains(body, want) {
 			t.Errorf("root missing %q", want)
 		}
@@ -76,7 +76,7 @@ func TestCollectionHidesHiddenAndHasBack(t *testing.T) {
 	if !strings.Contains(body, `class="back" href="/"`) {
 		t.Error("back to root missing")
 	}
-	if !strings.Contains(body, `src="/m/audio/kolobok/cover.jpg"`) {
+	if !regexp.MustCompile(`src="/m/audio/kolobok/cover\.jpg\?v=\d+"`).MatchString(body) {
 		t.Error("cover url")
 	}
 	code, _ := get(t, ts, "/n/audio/hidden-one")
@@ -113,7 +113,7 @@ func TestAudioPlaylist(t *testing.T) {
 	if err := json.Unmarshal([]byte(strings.ReplaceAll(m[1], "&#34;", `"`)), &tracks); err != nil {
 		t.Fatal(err, m[1])
 	}
-	if len(tracks) != 3 || m[2] != "1" || tracks[2].File != "/m/audio/prostokvashino/10-zima/a.mp3" {
+	if len(tracks) != 3 || m[2] != "1" || !strings.HasPrefix(tracks[2].File, "/m/audio/prostokvashino/10-zima/a.mp3?v=") {
 		t.Fatalf("tracks %+v index %s", tracks, m[2])
 	}
 	if !strings.Contains(body, `<audio id="media"`) || !strings.Contains(body, "Простоквашино") {
@@ -124,7 +124,7 @@ func TestAudioPlaylist(t *testing.T) {
 func TestVideoPage(t *testing.T) {
 	ts := newTestServer(t)
 	_, body := get(t, ts, "/n/video/nu-pogodi/01")
-	if !strings.Contains(body, `<video id="media" controls playsinline`) || !strings.Contains(body, `poster="/m/video/nu-pogodi/01/cover.jpg"`) {
+	if !strings.Contains(body, `<video id="media" controls playsinline`) || !strings.Contains(body, `poster="/m/video/nu-pogodi/01/cover.jpg?v=`) {
 		t.Error("video element")
 	}
 	if !strings.Contains(body, `id="prev" hidden`) || !strings.Contains(body, `id="next" hidden`) {
@@ -166,13 +166,13 @@ func TestMediaRangeAndTraversal(t *testing.T) {
 func TestStoryPage(t *testing.T) {
 	ts := newTestServer(t)
 	_, body := get(t, ts, "/n/books/tiny")
-	if !strings.Contains(body, `href="/n/books/tiny/01"`) || !strings.Contains(body, `src="/m/books/tiny/01/cover.jpg"`) || !strings.Contains(body, "Глава 1 · Начало") {
+	if !strings.Contains(body, `href="/n/books/tiny/01"`) || !strings.Contains(body, `src="/m/books/tiny/01/cover.jpg?v=`) || !strings.Contains(body, "Глава 1 · Начало") {
 		t.Error("book collection lists chapters as tiles")
 	}
 	_, body = get(t, ts, "/n/books/tiny/01")
 	// 3 paragraphs, 2 scenes -> figures before paragraph 0 and 2; first figure right, second left
 	fig := regexp.MustCompile(`<figure class="(\w+)"><img src="([^"]+)"`).FindAllStringSubmatch(body, -1)
-	if len(fig) != 2 || fig[0][1] != "right" || fig[1][1] != "left" || fig[0][2] != "/m/books/tiny/01/img/one.jpg" {
+	if len(fig) != 2 || fig[0][1] != "right" || fig[1][1] != "left" || !strings.HasPrefix(fig[0][2], "/m/books/tiny/01/img/one.jpg?v=") {
 		t.Errorf("figures: %v", fig)
 	}
 	if !strings.Contains(body, `<p class="verse">Строка один<br>строка два</p>`) {
@@ -215,5 +215,41 @@ func TestGroups(t *testing.T) {
 	_, body = get(t, ts, "/n/audio")
 	if strings.Contains(body, `class="group"`) {
 		t.Error("a collection without labelled children has no headers")
+	}
+}
+
+func TestCacheBusting(t *testing.T) {
+	ts := newTestServer(t)
+	r, err := http.Get(ts.URL + "/n/audio")
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Body.Close()
+	if cc := r.Header.Get("Cache-Control"); cc != "no-cache" {
+		t.Errorf("pages must revalidate, got Cache-Control %q", cc)
+	}
+	_, body := get(t, ts, "/n/audio")
+	m := regexp.MustCompile(`src="(/m/audio/kolobok/cover\.jpg\?v=\d+)"`).FindStringSubmatch(body)
+	if m == nil {
+		t.Fatal("cover url must carry a version")
+	}
+	if !strings.Contains(body, `href="/static/app.css?v=`) {
+		t.Error("stylesheet url must carry a version")
+	}
+	r, err = http.Get(ts.URL + m[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Body.Close()
+	if cc := r.Header.Get("Cache-Control"); r.StatusCode != 200 || !strings.Contains(cc, "immutable") {
+		t.Errorf("versioned media: %d %q", r.StatusCode, cc)
+	}
+	r, err = http.Get(ts.URL + "/m/audio/kolobok/cover.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Body.Close()
+	if cc := r.Header.Get("Cache-Control"); cc != "no-cache" {
+		t.Errorf("unversioned media must revalidate, got %q", cc)
 	}
 }

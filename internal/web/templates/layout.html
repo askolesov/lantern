@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="{{if .IsRoot}}#fdf3e3{{else}}#2b2033{{end}}">
-<link rel="stylesheet" href="/static/app.css">
+<link rel="stylesheet" href="{{static "app.css"}}">
 </head>{{end}}
 
 {{define "back"}}{{if .BackURL}}<a class="back" href="{{.BackURL}}" aria-label="Назад">{{template "icon-back"}}</a>{{end}}{{end}}
