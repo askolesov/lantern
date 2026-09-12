@@ -38,8 +38,10 @@ one changes. No hidden memory: notes go here or in the spec.
   The live set is the 2026-09-12 one (fox at the radio, cat at the TV, open book, sleeping bear, moon over a
   cottage); an alternative "same bear cub on every tile" set was generated the same day and rejected (user: the
   first set is good, it just had not shown on the iPad because of caching). Real money: only on request.
-- **iPad caching:** Safari may keep old covers/pages; after a content or release change, reload hard or
-  reopen the web app before concluding something did not sync.
+- **Caching (fixed in v0.3.1):** media URLs carry the file mtime (`?v=…`) and are served immutable; pages
+  and unversioned media are `no-cache`; `app.css` is versioned by server start. A replaced cover shows up on
+  the iPad on the next page load. Before v0.3.1 covers were cached for a day at a fixed URL — if a stale
+  picture is ever seen again, check the `?v=` in the page source first.
 
 ## Operations
 
