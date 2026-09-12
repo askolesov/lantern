@@ -27,7 +27,7 @@ one changes. No hidden memory: notes go here or in the spec.
 - **Five top-level sections (user decision 2026-09-12), one shelf row:** `audio/` «Сказки аудио»,
   `video/` «Сказки видео» (ex-«Мультфильмы»), `books/` «Книги», `lullabies-audio/` «Колыбельные аудио»
   (mp3 from mishka-knizhka.ru, 10 time-tested songs: Soviet classics + two folk), `lullabies-video/`
-  «Колыбельные видео» (mp4 ≤720p from YouTube via `yt-dlp`, original performers, 8 videos). No wrapper
+  «Колыбельные видео» (mp4 ≤720p from YouTube via `yt-dlp`, original performers, 8 videos). **YouTube mp4 must be H.264:** `-f "bv*[vcodec^=avc1][height<=720]+ba[ext=m4a]/b[ext=mp4][vcodec^=avc1]" --merge-output-format mp4` — a plain `[ext=mp4]` filter returns AV1, which Safari/iPad shows as a crossed-out play button (bitten 2026-09-12, 5 of 8 files re-fetched). Check with `ffprobe -show_entries stream=codec_name`. No wrapper
   collection for lullabies. Time-tested songs only, no modern AI-generated lullabies. Song dirs `NN-<slug>/`,
   covers = site og:image / YouTube thumbnail. Root order is the natural sort of dir names
   (audio, books, lullabies-audio, lullabies-video, video) — rename dirs if a different order is wanted.
