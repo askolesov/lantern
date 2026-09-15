@@ -1,4 +1,4 @@
-# Hobbit pipeline (tools/book) — status 2026-09-15: ch. 1–9 COMPLETE (condensed + pictures, live on the node); ch. 10 NOT READY (full text, old draft scenes); ch. 11–15 full text loaded, hidden
+# Hobbit pipeline (tools/book) — status 2026-09-15: ch. 1–9 COMPLETE (condensed + pictures, live on the node); ch. 10 NOT READY (full text, old draft scenes); ch. 11–19 full text loaded (whole book), hidden
 
 **Where things are since 2026-09-11 (Lantern migration).** These scripts are the *tools*; the
 *data* is the package `~/Documents/projects-my/lantern-content/books/hobbit/` (not in git):
@@ -41,7 +41,7 @@ and the target picture density. Key rules:
   | 8 | condensed 11.5k (2026-09-07, ~10 min — longest chapter, cut further only if asked) | 12 (`08_*`) | done 2026-09-12, `BASE_MID`, all 12 accepted on contact sheet |
   | 9 | condensed 10.8k (2026-09-12, ~10 min — like ch. 7–8; cut further only if asked) | 11 (`09_*`) | done 2026-09-12, `BASE_MID`, all 11 accepted; `last_barrel` shows Bilbo visible among the elves (prompt asked for a faint outline) — regenerate if the user minds |
   | 10 | full text | old draft list in `gen_images.py` (`10_*`) | 14 placeholders |
-  | 11–15 | full text loaded 2026-09-15 (`src/ch11.txt`…`ch15.txt` → `chapters.full.json`, 15 chapters; dirs `11/`–`15/` exported with `hidden: true`, no scenes) | — | — |
+  | 11–19 | full text loaded 2026-09-15 (`src/ch11.txt`…`ch19.txt` → `chapters.full.json`, all 19 chapters; dirs `11/`–`19/` exported with `hidden: true`, no scenes). Sizes: 11 14.6k, 12 36.1k, 13 19.6k, 14 16.4k, 15 16.5k, 16 10.9k, 17 19.9k, 18 14.9k, 19 12.3k | — | — |
 
   Old `7_*`/`8_*` draft entries were removed from `gen_images.py` 2026-09-07, `9_*` on 2026-09-12 (all still in `scenes_4_10.py`). **Always run `gen_images.py` with explicit scene names** — with no args it would also generate the 14 old ch. 10 drafts.
   Lesson 2026-09-12: the `CHARS` injection matches substrings, so `himself`/`itself` inject the elf description and `Elvenking's caves` injects the king with his throne — check every new prompt with a keyword dump (ast-parse `SCENES`, list matching `CHARS` keys) before generating; say `he is` / `the palace caves` instead.
