@@ -17,6 +17,9 @@ scenes={
 # ch.10 re-planned 2026-09-16 against the condensed text (old 14-slot list above was against the pre-condense
 # full text, now stale); pictures generated and contact-sheet checked the same day.
 9:[('mountain_sighted','Одинокая Гора вдали'),('long_lake','Долгое озеро'),('laketown','Эсгарот'),('bilbo_frees_thorin','Бильбо открывает бочку'),('dwarves_ashore','Гномы на берегу'),('thorin_at_the_hut','Торин у сторожки'),('thorin_in_the_hall','Торин в зале'),('town_sings','Город поёт'),('thorin_enthroned','Торин на почётном месте'),('bilbo_sick','Бильбо простудился'),('departure','Отплытие к Горе')],
+# ch.11-12 planned and pictures generated 2026-09-16, contact-sheet checked.
+10:[('company_departs','В путь к Горе'),('desolation_march','Драконова Пустошь'),('scouting_gate','Разведка у Ворот'),('map_by_firelight','Карта у костра'),('finding_the_door','Дверь найдена'),('hauling_up_ropes','Подъём на верёвках'),('bilbo_on_the_doorstep','Бильбо на крылечке'),('dwarves_grumble','Гномы ворчат'),('thrush_and_door','Дрозд и дверь')],
+11:[('thorin_sends_bilbo','Торин отправляет Бильбо'),('bilbo_descends','Спуск во тьму'),('tunnel_glow','Отсвет впереди'),('smaug_hoard','Смауг на золоте'),('bilbo_steals_cup','Бильбо крадёт чашу'),('smaug_bursts_out','Смауг вырывается наружу'),('rope_rescue','Спасение на верёвках'),('second_descent_eye','Красный глаз из-под века'),('riddle_names','Загадочные имена'),('barrel_rider_taunt','Наездник Бочки'),('smaug_revenge_roar','Месть! - рёв дракона'),('diamond_waistcoat','Алмазный жилет'),('bilbo_burnt_escape','Бегство от огня'),('thrush_listens','Дрозд слушает'),('smaug_flies_to_lake','Смауг летит к Озеру')],
 }
 
 chs = json.load(open("src/condensed.json"))
