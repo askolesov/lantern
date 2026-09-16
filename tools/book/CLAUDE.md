@@ -1,4 +1,4 @@
-# Hobbit pipeline (tools/book) — status 2026-09-16: ch. 1–12 COMPLETE (condensed + pictures, live on the node, unhidden); ch. 13–19 full text loaded (whole book), hidden
+# Hobbit pipeline (tools/book) — status 2026-09-16: ch. 1–12 COMPLETE (condensed + real pictures, live on the node, unhidden); ch. 13–19 all condensed, unhidden, with STUB placeholder images (plain color + caption, generated locally with PIL, zero API cost) — real prompts already written in `gen_images.py`, just not generated yet. The whole book is now readable text-only end to end; only the art for 13–19 is pending.
 
 **Where things are since 2026-09-11 (Lantern migration).** These scripts are the *tools*; the
 *data* is the package `~/Documents/projects-my/lantern-content/books/hobbit/` (not in git):
@@ -43,7 +43,19 @@ and the target picture density. Key rules:
   | 10 | condensed 9.3k (2026-09-16, ~8 min) | 11 (`10_*`, re-planned against condensed text) | done 2026-09-16, `BASE_MID`, all 11 accepted on contact sheet; unhidden and synced |
   | 11 | condensed 7.9k (2026-09-16, ~7 min) | 9 (`11_*`) | done 2026-09-16, `BASE_MID`, all 9 accepted on contact sheet; unhidden and synced |
   | 12 | condensed 14.5k (2026-09-16, ~13 min — the Smaug chapter, kept longer than usual since it's the book's centerpiece; cut further only if asked) | 15 (`12_*`, `smaug`/`dragon` added to `CHARS` this chapter) | done 2026-09-16, `BASE_MID`, all 15 accepted on contact sheet; unhidden and synced |
-  | 13–19 | full text loaded 2026-09-15 (`src/ch13.txt`…`ch19.txt` → `chapters.full.json`; dirs `13/`–`19/` exported with `hidden: true`, no scenes). Sizes: 13 19.6k, 14 16.4k, 15 16.5k, 16 10.9k, 17 19.9k, 18 14.9k, 19 12.3k | — | — |
+  | 13 | condensed 8.9k (2026-09-16, ~8 min) | 9 (`13_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
+  | 14 | condensed 7.5k (2026-09-16, ~7 min) | 8 (`14_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
+  | 15 | condensed 10.2k (2026-09-16, ~9 min) | 11 (`15_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
+  | 16 | condensed 7.2k (2026-09-16, ~7 min) | 8 (`16_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
+  | 17 | condensed 10.6k (2026-09-16, ~10 min — Battle of Five Armies, kept a bit longer) | 12 (`17_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
+  | 18 | condensed 9.7k (2026-09-16, ~9 min) | 10 (`18_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
+  | 19 | condensed 8.9k (2026-09-16, ~8 min) | 9 (`19_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
+
+  **Generating the real ch. 13–19 art later:** prompts are already in `gen_images.py` (`13_*`…`19_*`, `bard`/`dain`/`master`/`roac` added to `CHARS`
+  this batch). Run `gen_images.py <names…>` (or `--dry-run` first) from the package dir with a key loaded, then `shrink.py` — this overwrites the stub
+  `img/<slug>.jpg` filenames with real art in place. **But `export.py` only copies `cover.jpg` from the first scene if `cover.jpg` doesn't already
+  exist** — since the stub cover is already there, delete `NN/cover.jpg` before re-running `export.py`, or the tile will keep showing the old stub
+  forever even after the real pictures land. Then `make sync`.
 
   Old `7_*`/`8_*` draft entries were removed from `gen_images.py` 2026-09-07, `9_*` on 2026-09-12 (all still in `scenes_4_10.py`). **Always run `gen_images.py` with explicit scene names** — with no args it would also generate the 14 old ch. 10 drafts.
   Lesson 2026-09-12, **fixed in code 2026-09-15**: the `CHARS` injection used to match substrings, so `himself`/`itself`/`shelf` injected the elf description
