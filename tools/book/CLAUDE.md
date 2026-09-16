@@ -1,4 +1,4 @@
-# Hobbit pipeline (tools/book) — status 2026-09-16: ch. 1–12 COMPLETE (condensed + real pictures, live on the node, unhidden); ch. 13–19 all condensed, unhidden, with STUB placeholder images (plain color + caption, generated locally with PIL, zero API cost) — real prompts already written in `gen_images.py`, just not generated yet. The whole book is now readable text-only end to end; only the art for 13–19 is pending.
+# Hobbit pipeline (tools/book) — status 2026-09-16: ch. 1–19 COMPLETE, whole book condensed with real pictures, live on the node, unhidden. All 67 ch.13-19 stubs replaced with real art the same day (2 reshoots needed: `15_gate_wall_built` had a stray hallucinated Gandalf+Bilbo in what should've been an empty landscape shot, `19_auction_chaos` rendered literal "AUCTION" text on the sign — both fixed by tightening the prompts, see the CHARS/style notes below).
 
 **Where things are since 2026-09-11 (Lantern migration).** These scripts are the *tools*; the
 *data* is the package `~/Documents/projects-my/lantern-content/books/hobbit/` (not in git):
@@ -43,19 +43,26 @@ and the target picture density. Key rules:
   | 10 | condensed 9.3k (2026-09-16, ~8 min) | 11 (`10_*`, re-planned against condensed text) | done 2026-09-16, `BASE_MID`, all 11 accepted on contact sheet; unhidden and synced |
   | 11 | condensed 7.9k (2026-09-16, ~7 min) | 9 (`11_*`) | done 2026-09-16, `BASE_MID`, all 9 accepted on contact sheet; unhidden and synced |
   | 12 | condensed 14.5k (2026-09-16, ~13 min — the Smaug chapter, kept longer than usual since it's the book's centerpiece; cut further only if asked) | 15 (`12_*`, `smaug`/`dragon` added to `CHARS` this chapter) | done 2026-09-16, `BASE_MID`, all 15 accepted on contact sheet; unhidden and synced |
-  | 13 | condensed 8.9k (2026-09-16, ~8 min) | 9 (`13_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
-  | 14 | condensed 7.5k (2026-09-16, ~7 min) | 8 (`14_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
-  | 15 | condensed 10.2k (2026-09-16, ~9 min) | 11 (`15_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
-  | 16 | condensed 7.2k (2026-09-16, ~7 min) | 8 (`16_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
-  | 17 | condensed 10.6k (2026-09-16, ~10 min — Battle of Five Armies, kept a bit longer) | 12 (`17_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
-  | 18 | condensed 9.7k (2026-09-16, ~9 min) | 10 (`18_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
-  | 19 | condensed 8.9k (2026-09-16, ~8 min) | 9 (`19_*`) | STUB placeholders, unhidden 2026-09-16; real prompts written, not generated |
+  | 13 | condensed 8.9k (2026-09-16, ~8 min) | 9 (`13_*`) | done 2026-09-16, `BASE_MID`, all 9 accepted on contact sheet; unhidden and synced |
+  | 14 | condensed 7.5k (2026-09-16, ~7 min) | 8 (`14_*`) | done 2026-09-16, `BASE_MID`, all 8 accepted on contact sheet; unhidden and synced |
+  | 15 | condensed 10.2k (2026-09-16, ~9 min) | 11 (`15_*`) | done 2026-09-16, `BASE_MID`, 10/11 accepted first pass; `gate_wall_built` reshot (see below) |
+  | 16 | condensed 7.2k (2026-09-16, ~7 min) | 8 (`16_*`) | done 2026-09-16, `BASE_MID`, all 8 accepted on contact sheet; unhidden and synced |
+  | 17 | condensed 10.6k (2026-09-16, ~10 min — Battle of Five Armies, kept a bit longer) | 12 (`17_*`) | done 2026-09-16, `BASE_MID`, all 12 accepted on contact sheet; unhidden and synced |
+  | 18 | condensed 9.7k (2026-09-16, ~9 min) | 10 (`18_*`) | done 2026-09-16, `BASE_MID`, all 10 accepted on contact sheet; unhidden and synced |
+  | 19 | condensed 8.9k (2026-09-16, ~8 min) | 9 (`19_*`) | done 2026-09-16, `BASE_MID`, 8/9 accepted first pass; `auction_chaos` reshot (see below) |
 
-  **Generating the real ch. 13–19 art later:** prompts are already in `gen_images.py` (`13_*`…`19_*`, `bard`/`dain`/`master`/`roac` added to `CHARS`
-  this batch). Run `gen_images.py <names…>` (or `--dry-run` first) from the package dir with a key loaded, then `shrink.py` — this overwrites the stub
-  `img/<slug>.jpg` filenames with real art in place. **But `export.py` only copies `cover.jpg` from the first scene if `cover.jpg` doesn't already
-  exist** — since the stub cover is already there, delete `NN/cover.jpg` before re-running `export.py`, or the tile will keep showing the old stub
-  forever even after the real pictures land. Then `make sync`.
+  **Two reshoots from the 13–19 batch, both fixed by tightening the prompt (lesson for future batches):**
+  - `15_gate_wall_built` was meant to be an empty architectural landscape shot (no characters in the prompt at all), but the model hallucinated
+    Gandalf and Bilbo standing in front of the wall anyway. Fix: explicitly add "No people or creatures anywhere in the scene, an empty
+    architectural landscape shot." — a bare absence of character mentions isn't enough, say "empty" out loud.
+  - `19_auction_chaos` asked for "a large auction notice pinned to the gate" and got a sign literally reading "AUCTION" in English letters,
+    breaking the "no text, no letters" house rule. Fix: say "a blank unmarked notice board with no writing" instead of naming what the sign says.
+  Both lessons: when a scene includes a sign/landscape that could imply text or absent characters, say so explicitly and don't rely on the base
+  prompt's general "no text" / "only characters mentioned" clauses to hold on their own.
+
+  Stub-placeholder mechanics (used for the first pass, kept here in case a future batch does the same): `export.py` only copies `cover.jpg` from
+  the first scene if `cover.jpg` doesn't already exist, so once a stub cover exists it must be deleted (`rm NN/cover.jpg`) before re-running
+  `export.py`, or the tile keeps showing the stub forever even after real art lands.
 
   Old `7_*`/`8_*` draft entries were removed from `gen_images.py` 2026-09-07, `9_*` on 2026-09-12 (all still in `scenes_4_10.py`). **Always run `gen_images.py` with explicit scene names** — with no args it would also generate the 14 old ch. 10 drafts.
   Lesson 2026-09-12, **fixed in code 2026-09-15**: the `CHARS` injection used to match substrings, so `himself`/`itself`/`shelf` injected the elf description
