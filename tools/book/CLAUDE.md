@@ -1,4 +1,4 @@
-# Hobbit pipeline (tools/book) — status 2026-09-16: ch. 1–19 COMPLETE, whole book condensed with real pictures, live on the node, unhidden. All 67 ch.13-19 stubs replaced with real art the same day (2 reshoots needed: `15_gate_wall_built` had a stray hallucinated Gandalf+Bilbo in what should've been an empty landscape shot, `19_auction_chaos` rendered literal "AUCTION" text on the sign — both fixed by tightening the prompts, see the CHARS/style notes below).
+# Hobbit pipeline (tools/book) — status 2026-09-16: ch. 1–19 COMPLETE, whole book condensed with real BASE_MID pictures, live on the node, unhidden, every chapter now on the current rules (ch. 1–5 were the last holdouts — BASE_OLD/BASE style, ch.1-3 on the old ~10 min target, ch.1-2 pictures made against the wrong text — all re-illustrated 2026-09-16, see the table below). Three reshoots total the same day from hallucinated/wrong content, all fixed by tightening the prompt: `15_gate_wall_built` (stray Gandalf+Bilbo in what should've been an empty shot), `19_auction_chaos` (literal "AUCTION" text on a sign), `02_troll_cave_treasure` (live trolls peering in when they were already stone statues outside by that point in the story) — see the CHARS/style notes below.
 
 **Where things are since 2026-09-11 (Lantern migration).** These scripts are the *tools*; the
 *data* is the package `~/Documents/projects-my/lantern-content/books/hobbit/` (not in git):
@@ -29,13 +29,16 @@ and the target picture density. Key rules:
   3. Only then write the image prompts. For each window pick **the most interesting moment inside that window** (user decision 2026-09-04: the picture may sit a little above or below the exact sentence, but it must be the best moment of that stretch, not the first paragraph). The prompt must state **exactly the characters present and their state as the text has them**: if the company travels on ponies, EVERYONE is on ponies and the ponies appear in every travel/camp scene; if hands are chained, they are chained; name who is in the frame (Bilbo, Gandalf, Thorin, Fili & Kili, the Great Goblin…) — no generic "travelers", no hobbit on foot while the text says he rides. Ch. 1–3 pictures failed exactly on this (hobbit without a pony, odd elves, boring moments). Show the slot→prompt plan to the user before generating.
   Reason: chapters 1–2 pictures were generated from the full text before condensing and "absolutely didn't match context". Don't reuse old prompts for condensed chapters; if a chapter is condensed later, its pictures must be re-planned against the new text.
 - **Never use global memory** (the `~/.claude/projects/.../memory/` directory). All project notes, decisions and lessons go in this file or `README.md`.
-- Old pictures that no longer fit a re-planned chapter go to `src/img-old/chapter-N/` (not deleted). Ch. 5–6 old cute-style pictures (27 + 22) moved there 2026-09-05, ch. 7 old ones (11) 2026-09-07. Mixing kept old (cute-style) and new (realistic) pictures inside one chapter is accepted by the user to save credits (ch. 4: 4 old kept, 6 new — done 2026-09-04, the style break is visible; regenerate the 4 old ones if the user wants a uniform chapter).
+- Old pictures that no longer fit a re-planned chapter go to `src/img-old/chapter-N/` (not deleted). Ch. 5–6 old cute-style pictures (27 + 22) moved there 2026-09-05, ch. 7 old ones (11) 2026-09-07. Ch. 1–5 fully re-illustrated 2026-09-16 (see below) — no more mixed-style chapters left in the book.
 - **Per-chapter status (update this table, not prose):**
 
   | Ch. | Text | Slots / prompts | Pictures |
   |---|---|---|---|
-  | 1–4 | condensed | done | done |
-  | 5 | condensed 9.2k | 11 (`05_*`) | done 2026-09-06 |
+  | 1 | rewritten 2026-09-16, 17.1k→12.3k (~11 min — opening chapter, introduces the whole cast by name, same exception as ch.8/12) | 14 (`01_*`, `dwalin` added to `CHARS`) | done 2026-09-16, `BASE_MID`, all 14 accepted on contact sheet; old 23 BASE_OLD pictures archived to `src/img-old/chapter-1/` |
+  | 2 | rewritten 2026-09-16, 12.8k→12.3k (~11 min, same exception) | 14 (`02_*`) | done 2026-09-16, `BASE_MID`, 13/14 accepted first pass; `troll_cave_treasure` reshot (see below); old 21 BASE_OLD pictures archived to `src/img-old/chapter-2/` |
+  | 3 | unchanged 9.9k (~9 min, already at target) | 11 (`03_*`, re-planned — old plan had "hobbit without a pony, odd elves") | done 2026-09-16, `BASE_MID`, all 11 accepted on contact sheet; old 12 BASE_OLD pictures archived to `src/img-old/chapter-3/` |
+  | 4 | unchanged, already correct | 10 (`04_*` — 4 of these, `crack_opens`/`goblin_hall`/`running_tunnels`/`dori_grabbed`, had never had proper prompts and were quietly missing until now, only old terse drafts in `scenes_4_10.py`) | done 2026-09-16, `BASE_MID` (was `BASE`, too dark/realistic); old 10 `BASE` pictures archived to `src/img-old/chapter-4-base/` |
+  | 5 | unchanged, already correct | 11 (`05_*`) | done 2026-09-16, `BASE_MID` (was `BASE`); old 11 `BASE` pictures archived to `src/img-old/chapter-5-base/` |
   | 6 | condensed 9.5k | 11 (`06_*`) | done 2026-09-08, `BASE_MID` style (1 regenerated: extra elf; reject in `_old/chapter-6/mid-rejects`) |
   | 7 | condensed 10.0k (2026-09-07) | 11 (`07_*`) | done 2026-09-10, `BASE_MID` style, all 11 accepted on contact sheet; old 11 in `_old` |
   | 8 | condensed 11.5k (2026-09-07, ~10 min — longest chapter, cut further only if asked) | 12 (`08_*`) | done 2026-09-12, `BASE_MID`, all 12 accepted on contact sheet |
@@ -51,14 +54,19 @@ and the target picture density. Key rules:
   | 18 | condensed 9.7k (2026-09-16, ~9 min) | 10 (`18_*`) | done 2026-09-16, `BASE_MID`, all 10 accepted on contact sheet; unhidden and synced |
   | 19 | condensed 8.9k (2026-09-16, ~8 min) | 9 (`19_*`) | done 2026-09-16, `BASE_MID`, 8/9 accepted first pass; `auction_chaos` reshot (see below) |
 
-  **Two reshoots from the 13–19 batch, both fixed by tightening the prompt (lesson for future batches):**
+  **Three reshoots so far, all fixed by tightening the prompt (lessons for future batches):**
   - `15_gate_wall_built` was meant to be an empty architectural landscape shot (no characters in the prompt at all), but the model hallucinated
     Gandalf and Bilbo standing in front of the wall anyway. Fix: explicitly add "No people or creatures anywhere in the scene, an empty
     architectural landscape shot." — a bare absence of character mentions isn't enough, say "empty" out loud.
   - `19_auction_chaos` asked for "a large auction notice pinned to the gate" and got a sign literally reading "AUCTION" in English letters,
     breaking the "no text, no letters" house rule. Fix: say "a blank unmarked notice board with no writing" instead of naming what the sign says.
-  Both lessons: when a scene includes a sign/landscape that could imply text or absent characters, say so explicitly and don't rely on the base
-  prompt's general "no text" / "only characters mentioned" clauses to hold on their own.
+  - `02_troll_cave_treasure` (ch. 1–5 batch) asked for "a troll cave" and got two live troll faces peering in from the side — but by that point
+    in the story the trolls are already turned to stone outside in the daylight, so no troll should be present at all. Fix: say so explicitly,
+    "no trolls or any other creature present (the trolls are already turned to stone outside)" — a location name alone ("troll cave") can pull
+    in the owner as a hallucinated character even when the prompt never asks for them.
+  Lesson from all three: when a scene includes a sign, a landscape, or a location tied to a character who *shouldn't* be in this particular
+  moment, say so explicitly — don't rely on the base prompt's general "no text" / "only characters mentioned" clauses, or on the absence of a
+  name, to hold on their own.
 
   Stub-placeholder mechanics (used for the first pass, kept here in case a future batch does the same): `export.py` only copies `cover.jpg` from
   the first scene if `cover.jpg` doesn't already exist, so once a stub cover exists it must be deleted (`rm NN/cover.jpg`) before re-running
