@@ -2,7 +2,7 @@
 """Generate storybook illustrations for chapters of The Hobbit via OpenAI gpt-image-1.
 Usage: OPENAI_API_KEY=... python3 gen_images.py
 """
-import base64, json, os, sys, urllib.request, concurrent.futures, pathlib
+import base64, json, os, re, sys, urllib.request, concurrent.futures, pathlib
 
 # Backends: OPENAI_API_KEY -> api.openai.com gpt-image-1 (original); otherwise OPENROUTER_API_KEY ->
 # openrouter.ai chat completions with an image-output model (added 2026-09-04; key lives in
@@ -13,7 +13,14 @@ if not KEY:
 if not KEY:
     sys.exit("OPENAI_API_KEY or OPENROUTER_API_KEY not set")
 OR_MODEL = os.environ.get("OR_MODEL", "openai/gpt-5-image")
-ONLY = sys.argv[1:]   # optional: scene names to generate (e.g. `python3 gen_images.py 04_climbing_ponies`)
+ARGS = sys.argv[1:]
+DRY  = "--dry-run" in ARGS            # print prompts + matched CHARS keys, call no API, spend nothing
+ALL  = "--all" in ARGS
+ONLY = [a for a in ARGS if not a.startswith("--")]   # scene names, e.g. `python3 gen_images.py 04_climbing_ponies`
+if not ONLY and not ALL:
+    sys.exit("refusing to run with no scene names: that would generate every missing scene in SCENES,\n"
+             "including any stale draft entries, and spend real money (~$0.065/picture).\n"
+             "Pass explicit names, or --all to really mean all. Add --dry-run to preview prompts for free.")
 
 # Old prefix, used for ch. 1-6 (cute, toddler-ish). Kept for reference; do NOT use for new images.
 BASE_OLD = ("Warm, cozy children's picture-book illustration, soft watercolor and ink, gentle colors, friendly rounded "
@@ -67,10 +74,15 @@ CHARS = {
  "warg":    "Wolves are big and grey, a little silly, not scary. ",
  "troll":   "Trolls are big, grey-green, lumpy and silly, not scary. ",
 }
-def full_prompt(scene, name=""):
+def full_prompt(scene, name="", trace=None):
+    # Match at a WORD START only. Plain `k in low` matched substrings, so "himself"/"itself" pulled in
+    # the "elf" description and silently put elves in the frame (lesson 2026-09-12). "\bdwar" still
+    # catches "dwarves"/"dwarf"; "\belf" catches "elf"/"elves" but not "himself".
     low = scene.lower(); extra = ""
     for k, d in CHARS.items():
-        if k in low and d not in extra: extra += d
+        if re.search(r"\b" + re.escape(k), low) and d not in extra:
+            extra += d
+            if trace is not None: trace.append(k)
     base = BASE_BY_CH.get(name.split("_", 1)[0], BASE_DEFAULT)
     return base + extra + scene
 
@@ -111,20 +123,22 @@ SCENES = {
  "06_eagle_lord_talks": "Dawn on a wide rocky shelf high on a mountainside, sky pale pink: the enormous Lord of the Eagles stands on the ledge talking with Gandalf, who leans on his staff, beak close to the wizard's hat; behind them thirteen dwarves sit in a row against the rock wall, tired and dusty; small Bilbo has just been set down on the ledge by another eagle and lies trembling, looking up at the giant bird; no ponies or baggage; no elves, no other people, no other creatures except the eagles.",
  "06_ledge_supper": "Warm evening scene on the mountain ledge: a bright campfire, dwarves roasting rabbits and a lamb on sticks, faces lit orange; two huge golden-brown eagles perched calmly on the rocks nearby watching; Gandalf resting against the rock; Bilbo, fed and content, curled up asleep on the bare stone beside the fire, torn waistcoat without buttons; stars coming out over distant plains.",
 
- "10_long_lake": "A wide lake with a great mountain rising beyond, the river flowing in, autumn light.",
- "10_laketown": "A wooden town built on stilts over a lake, bridges and boats, wooden houses, smoke from chimneys.",
- "10_barrels_shore": "Barrels pushed onto a shallow shore by elves with poles, a small cabin nearby, dawn.",
- "10_bilbo_opens": "Bilbo prying open a barrel with a knife, a soggy dwarf (Thorin) climbing out stiffly.",
- "10_wet_dwarves": "Thirteen wet, bruised, grumpy dwarves standing on a shore dripping, Bilbo apologetic.",
- "10_bridge_guards": "Thorin and dwarves marching onto a wooden bridge, town guards jumping up in surprise.",
- "10_master_feast": "A great hall in a wooden town, the fat Master at a long table, Thorin announcing himself, elves at the table looking shocked.",
- "10_town_cheers": "Crowds of townspeople cheering on wooden bridges and boats, dwarves waving, lanterns.",
- "10_old_songs": "Townspeople singing old songs about the King under the Mountain, children dancing on the quay.",
- "10_dwarves_fine": "Dwarves in fine new clothes with combed beards, looking very important in a town street.",
- "10_bilbo_cold_town": "Bilbo with a red nose and a blanket, sneezing, in a warm wooden room, tea nearby.",
- "10_boats_loaded": "Big boats being loaded with supplies and ponies on a lake shore, dwarves supervising.",
- "10_departure": "Boats rowing away up the lake toward the mountain, townspeople waving from the quay, autumn.",
- "10_mountain_ahead": "A boat on a grey lake, the lonely mountain looming ahead under cloudy sky, Bilbo looking worried.",
+ # --- Chapter 10, re-planned 2026-09-16 against the condensed text (11 windows, best moment per window;
+ # the old 14-slot draft list above was written against the pre-condense full text and is stale, moved to
+ # img-old reasoning in CLAUDE.md notes). Thorin here: torn, soaked, filthy sky-blue hood with a tarnished
+ # silver tassel, a gold chain at his throat, NO weapons (elves took the knives and Orcrist). No ponies in
+ # this chapter (sent overland separately, off-page).
+ "10_mountain_sighted": "Dawn on a wide river bending around a tall cliff, forest falling away behind: a line of wooden barrels bobs down the current, and on the nearest one Bilbo lies sprawled clinging to the rim, curly hair dripping, lifting his head to look out across a wide marshy plain where the river splits into many channels; far off through ragged clouds looms the dark peak of the Lonely Mountain, alone above the mist; Bilbo's face shows dismay, not joy; no other figures visible.",
+ "10_long_lake": "Sunset over a vast lake so wide the far shore is lost in haze: a swift river pours in between two weathered stone towers rising from shingle at the river mouth, water sheeted with the last orange light; a raft of barrels glides through the gap into the open water, tiny in the great expanse; the dark shape of the Lonely Mountain barely visible far to the north; wide landscape view, no close figures.",
+ "10_laketown": "Blue dusk over the lake: a large wooden town built entirely on tall pilings out over the water, plank streets and houses with lit windows and rising chimney smoke, joined to the shore by one great wooden bridge; boats move between the buildings; torches just being lit along the quay; the dark line of the forest behind; a hushed, golden-lit town, no figures prominent.",
+ "10_bilbo_frees_thorin": "Full night on a dark riverbank, round barrels beached in mud and shallow water: Bilbo wrenches the lid off one barrel with a knife, wet straw spilling out; from inside, Thorin claws his way upright, soaked to the skin, filthy and dishevelled, his sky-blue hood dark with water and its silver tassel tarnished, a gold chain glinting at his throat; Thorin's face is pained and stiff as he groans to his feet; no other dwarves visible yet, only faint starlight.",
+ "10_dwarves_ashore": "Night on a muddy riverbank strewn with open barrels and scattered straw: a dozen dwarves lie and sit sprawled in exhaustion, soaked and bruised, none carrying any weapon or pack; Fili and Kili, the two youngest with short yellow beards and blue hoods, crouch helping an older dwarf sit up; in the middle, fat Bombur with his brown beard and green hood lies utterly still, eyes shut, a faint smile on his face; Bilbo moves among them, checking each one, worried.",
+ "10_thorin_at_the_hut": "Torchlit night at a small guard hut beside a great wooden bridge: Thorin stands square in the open doorway, ragged and dripping but head high, gold chain and tarnished sky-blue hood catching the light, empty hands spread open to show he carries no weapon; behind him Fili, Kili and small Bilbo crowd close, equally unarmed and bedraggled; inside the hut, startled town guards in leather jerkins scramble up from a table, snatching spears, faces wide with shock.",
+ "10_thorin_in_the_hall": "A long wooden feast-hall lit by hanging lamps and a roaring hearth, townsfolk seated at long tables loaded with food and drink: every head turns as Thorin strides in through the open doors, ragged cloak and gold chain, chin lifted, one hand raised; Fili, Kili and Bilbo follow just behind him; men half rise from the benches, cups stopped halfway, astonished faces on every side; a few wood-elves at a side table stare in open-mouthed disbelief.",
+ "10_town_sings": "Night over the lake town, warm light spilling from every window and doorway onto the wooden quays: crowds of townsfolk in cloaks and shawls stand pressed along the rails and balconies, torches held high, mouths open in song; the black water below throws back a hundred small reflected flames; no single figure prominent, a whole town singing together.",
+ "10_thorin_enthroned": "Inside the Master's great feast-hall, warmly lit: Thorin sits upright in a huge carved wooden chair on a low dais, gold chain gleaming against his sky-blue hood, looking every inch a king despite his travel-worn cloak; Fili and Kili stand proudly on either side of the chair; at a smaller table just below, small Bilbo eats happily among plates of food, a little overwhelmed; townsfolk crowd the hall behind them, raising cups, a harpist playing in the corner.",
+ "10_bilbo_sick": "A small warm wooden room lit by a low fire: Bilbo sits wrapped to the chin in a thick blanket in a big chair pulled close to the hearth, curly hair damp, nose red, eyes half-shut and miserable, a steaming cup on a stool beside him; through the shuttered window a faint golden glow and the muffled sound of singing and harps drifts in from the feast outside; nobody else in the room.",
+ "10_departure": "A grey blustery autumn morning on the lake: three long wooden boats pull away from broad steps leading up to the town, oars dipping together, dwarves and Bilbo seated among sacks and barrels of supplies; townsfolk crowd the steps and windows above, waving and calling; ahead across the water, under low cloud, the dark bulk of the Lonely Mountain rises directly in their path; Bilbo, wrapped in a cloak, looks toward it without joy while the dwarves cheer.",
 
  "01_hall": "Inside a cozy hobbit hole: round tunnel hallway with panelled walls, pegs with coats, many round doors, warm light.",
  "01_bilbo_father": "A respectable old hobbit couple in old-fashioned clothes standing in front of a fine hobbit hole, portrait style.",
@@ -269,7 +283,22 @@ def gen(name, prompt):
             return name, f"ERR {e}"
 
 # run from the package dir: images go to ./img/chapter-N/
+unknown = [n for n in ONLY if n not in SCENES]
+if unknown:
+    sys.exit("no such scene in SCENES: " + ", ".join(unknown))
+
+todo = [(k, v) for k, v in SCENES.items() if not ONLY or k in ONLY]
+
+if DRY:
+    # The keyword dump CLAUDE.md asks for, before any prompt reaches the API.
+    for name, scene in todo:
+        trace = []
+        text = full_prompt(scene, name, trace)
+        print(f"\n=== {name} ===\nCHARS injected: {', '.join(trace) or '(none)'}\n{text}")
+    print(f"\n{len(todo)} scene(s), dry run, nothing generated, $0 spent.")
+    sys.exit(0)
+
+print(f"{len(todo)} picture(s) to generate, ~${0.065 * len(todo):.2f} at medium 1536x1024.", flush=True)
 with concurrent.futures.ThreadPoolExecutor(4) as ex:
-    todo = [(k, v) for k, v in SCENES.items() if not ONLY or k in ONLY]
     for name, st in ex.map(lambda kv: gen(*kv), todo):
         print(name, st, flush=True)

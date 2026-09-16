@@ -1,4 +1,4 @@
-# Hobbit pipeline (tools/book) — status 2026-09-15: ch. 1–9 COMPLETE (condensed + pictures, live on the node); ch. 10 NOT READY (full text, old draft scenes); ch. 11–19 full text loaded (whole book), hidden
+# Hobbit pipeline (tools/book) — status 2026-09-16: ch. 1–10 COMPLETE (condensed + pictures, live on the node, ch. 10 unhidden); ch. 11–19 full text loaded (whole book), hidden
 
 **Where things are since 2026-09-11 (Lantern migration).** These scripts are the *tools*; the
 *data* is the package `~/Documents/projects-my/lantern-content/books/hobbit/` (not in git):
@@ -22,7 +22,7 @@ and the target picture density. Key rules:
 
 - Never edit HTML: there is none. Scene order/captions → `export.py`, text → `condense.py`; rerun both from the package dir. The server picks up files on the next page load.
 - **Ch. 1–3 are condensed for ~10 min read-aloud** (user request 2026-08-29), **ch. 4 onward for ~7 min (~7.5–8k chars; user decision 2026-09-04)**: their text lives in `condense.py` (CH1/CH2/CH4/CH5/CH6 = full rewritten lists, CH3 = REPL3/DROP3 overlay on `chapters.full.json`), which overwrites those chapters in `chapters.json`. Ch. 5 = 9.2k, ch. 6 = 9.5k chars (2026-09-05; ~8 min — a bit over target, riddles and the eagle scenes kept; cut further only if the user asks).
-- **Names (user decision 2026-09-05): when condensing, rename Мешкинс → Бэггинс.** Implemented as `RENAME` in `condense.py`, applied to every chapter it writes (all 10, so the name is uniform across the reader); `chapters.full.json` keeps Мешкинс. New condensed text should be written with Бэггинс directly. Edit `condense.py`, then `python3 condense.py && python3 export.py` (from the package dir). Full original text is kept in `chapters.full.json`.
+- **Names (user decision 2026-09-05): when condensing, rename Мешкинс → Бэггинс.** Implemented as `RENAME` in `condense.py`, applied to every chapter it writes (so the name is uniform across the reader); `chapters.full.json` keeps Мешкинс. New condensed text should be written with Бэггинс directly — this includes ch. 10 and every chapter of 11–19 as they get condensed, not just the original 10. Edit `condense.py`, then `python3 condense.py && python3 export.py` (from the package dir). Full original text is kept in `chapters.full.json`.
 - **Per-chapter workflow (user decision 2026-09-02), strictly in this order:**
   1. Condense the chapter text (~7 min read-aloud, ~7.5–8k chars) in `condense.py`.
   2. Build, then determine the positions of the pictures spread evenly over the *condensed* text — **keep the ch. 3 spacing: one picture per ~850 chars, so ~10 per 8k-char chapter** (build.py places them by character count; print each picture's *window* = the paragraphs from its anchor to the next picture's anchor).
@@ -40,11 +40,18 @@ and the target picture density. Key rules:
   | 7 | condensed 10.0k (2026-09-07) | 11 (`07_*`) | done 2026-09-10, `BASE_MID` style, all 11 accepted on contact sheet; old 11 in `_old` |
   | 8 | condensed 11.5k (2026-09-07, ~10 min — longest chapter, cut further only if asked) | 12 (`08_*`) | done 2026-09-12, `BASE_MID`, all 12 accepted on contact sheet |
   | 9 | condensed 10.8k (2026-09-12, ~10 min — like ch. 7–8; cut further only if asked) | 11 (`09_*`) | done 2026-09-12, `BASE_MID`, all 11 accepted; `last_barrel` shows Bilbo visible among the elves (prompt asked for a faint outline) — regenerate if the user minds |
-  | 10 | full text | old draft list in `gen_images.py` (`10_*`) | 14 placeholders |
+  | 10 | condensed 9.3k (2026-09-16, ~8 min) | 11 (`10_*`, re-planned against condensed text) | done 2026-09-16, `BASE_MID`, all 11 accepted on contact sheet; unhidden and synced |
   | 11–19 | full text loaded 2026-09-15 (`src/ch11.txt`…`ch19.txt` → `chapters.full.json`, all 19 chapters; dirs `11/`–`19/` exported with `hidden: true`, no scenes). Sizes: 11 14.6k, 12 36.1k, 13 19.6k, 14 16.4k, 15 16.5k, 16 10.9k, 17 19.9k, 18 14.9k, 19 12.3k | — | — |
 
   Old `7_*`/`8_*` draft entries were removed from `gen_images.py` 2026-09-07, `9_*` on 2026-09-12 (all still in `scenes_4_10.py`). **Always run `gen_images.py` with explicit scene names** — with no args it would also generate the 14 old ch. 10 drafts.
-  Lesson 2026-09-12: the `CHARS` injection matches substrings, so `himself`/`itself` inject the elf description and `Elvenking's caves` injects the king with his throne — check every new prompt with a keyword dump (ast-parse `SCENES`, list matching `CHARS` keys) before generating; say `he is` / `the palace caves` instead.
+  Lesson 2026-09-12, **fixed in code 2026-09-15**: the `CHARS` injection used to match substrings, so `himself`/`itself`/`shelf` injected the elf description
+  and `Elvenking's caves` injects the king with his throne. `full_prompt()` now matches at a **word start** (`\b` + key), which kills the `himself`/`shelf`
+  class of bug while keeping `dwar`→`dwarves`. Audit of all 132 `SCENES` entries found 3 prompts that the old matcher corrupted:
+  `01_bilbo_burglar` and `10_master_feast` (`himself`) and **`06_eagle_lord_talks` (`shelf`) — a generated, live picture with a spurious elf in it;**
+  regenerate it if the user minds. Semantic mismatches like `Elvenking's caves` are NOT fixed by the boundary — still say `the palace caves`,
+  and preview with `python3 gen_images.py --dry-run <names…>`, which prints each prompt with the `CHARS` keys it injected and costs nothing.
+  `gen_images.py` now **refuses to run with no scene names** (it would have generated the 14 stale `10_*` drafts); pass names, or `--all` to mean it.
+  It also prints the picture count and estimated cost before generating.
 - New images: add to `SCENES` in `gen_images.py`, then `python3 gen_images.py [scene names…]` (no args = all missing), then `python3 shrink.py`.
   **Keys live in `~/Documents/projects-my/life/dossiers/2026-08-local-ai-hardware/.env`** (gitignored; user decision 2026-09-04): `OPENAI_API_KEY` (direct, gpt-image-1, ~$0.065/picture at medium 1536x1024 — preferred) and `OPENROUTER_API_KEY` (fallback backend in `gen_images.py`; use the `/images/generations` route, the chat route ignores size/quality and cost $0.28 for a square image). Load with `export $(grep -v '^#' <that .env> | xargs)`. Never copy a key into this folder.
 - Keep `BASE` + per-scene `CHARS` injection in `gen_images.py` (never list all characters in the base prompt — it produces a 'cast lineup' in every image).
