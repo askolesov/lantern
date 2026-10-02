@@ -12,6 +12,7 @@ package format in `docs/specs/2026-09-11-lantern-design.md` §2. Python lives on
 | `nukadeti.py <url> <dir> ["Title"] [--numbered]` | nukadeti.ru → packages. A listing page becomes a collection of its tales (recursively, `--numbered` keeps the site's order); a multi-part page becomes a collection of `NN-<part>` leaves; a single tale becomes one leaf. mp3 via the site's download endpoint (player JSON), cover = tale illustration, square-cropped. Incremental. |
 | `parts.py <manifest.json> <dir>` | generic: a manifest `{title, cover, source, parts:[{title,url}]}` → collection of `NN-<slug>` audio leaves. For any site once you have the mp3 URLs. |
 | `knigavuhe.py <book-url> ["Title"]` | prints a `parts.py` manifest from a knigavuhe.org book page (its BookPlayer JSON: tracks, cover). Track titles there are numbers → «Часть N». |
+| `mishka.py <url> <dir> ["Title"] [--min-images N] [--dry]` | mishka-knizhka.ru → illustrated `story` packages. A listing (author/category page, `page/N/` followed) becomes a collection of the tales from that section with ≥N illustrations (default 4); a tale page becomes one story leaf: `text.json`, `img/NN.jpg` (the site's own pictures in reading order), empty captions, cover = first picture square-cropped. `--dry` lists title / pictures / characters. Incremental. |
 | `book/` | the Hobbit pipeline (condense → export → gen_images → shrink). Hobbit-specific until a second book exists. Read `book/CLAUDE.md`. |
 
 Requirements: `brew install yt-dlp ffmpeg`, Python 3 with `Pillow`.
@@ -41,3 +42,11 @@ edit `node.yaml`, then `make check sync` from this repo.
   path); not worth scripting.
 - **YouTube** (`yt.sh`) — prefers h264/aac ≤1080p so Safari plays without transcoding; some videos
   only offer 360p in h264.
+- **mishka-knizhka.ru** — the source for «Читать» (2026-10-02). Tale text sits in `div.read-content`
+  (`page-wrap` divs, all pages in the HTML); pictures are `<figure>` or `<img>` inside a `<p>`, from
+  `/wp-content/uploads/20…`. Poems (`entry-content … poem`) come one line per `<p>` — `mishka.py`
+  regroups them into stanzas. Listing pages link promoted tales from other sections in the header,
+  so only tales whose URL contains the listing's own segment are taken. Author listings live at short
+  URLs (`/skazki-pushkina/`, `/rasskazy-nosova/`, `/stihi-chukovskogo/`, …); the folk-tale subsections at
+  `/skazki-dlay-detey/russkie-narodnye-skazki/<sub>/`. A few long books are cut short for non-subscribers
+  (Volkov's «Тайна заброшенного замка»: 805 characters) — check the `--dry` character count.
