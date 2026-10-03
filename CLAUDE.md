@@ -23,7 +23,7 @@ one changes. No hidden memory: notes go here or in the spec.
   one character (`kotenok-po-imeni-gav/`) is top-level too.
 - Chapter dirs are `NN-<slug>/`; the catalog draws the position badge on every tile whose dir name
   starts with a digit, so chapters sharing one cover stay distinguishable (added 2026-09-11).
-- `books/hobbit/NN/` chapter 10 is `hidden: true` until it has pictures (08–09 unhidden 2026-09-12).
+- `books/hobbit/NN/`: all 19 chapters illustrated and unhidden (2026-09-16).
 - **Root = two groups (user decision 2026-09-12, spec §3.1):** the five top-level collections stay flat
   (`audio/`, `video/`, `books/`, `lullabies-audio/`, `lullabies-video/`) and carry `group: Сказки` /
   `group: Колыбельные` with verb titles «Слушать» / «Смотреть» / «Читать»; the catalog renders each group

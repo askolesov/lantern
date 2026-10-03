@@ -50,3 +50,17 @@ edit `node.yaml`, then `make check sync` from this repo.
   URLs (`/skazki-pushkina/`, `/rasskazy-nosova/`, `/stihi-chukovskogo/`, …); the folk-tale subsections at
   `/skazki-dlay-detey/russkie-narodnye-skazki/<sub>/`. A few long books are cut short for non-subscribers
   (Volkov's «Тайна заброшенного замка»: 805 characters) — check the `--dry` character count.
+- **nukadeti.ru text tales** (`/skazki/…`) carry one picture per tale (the 400×400 tile) — useless for «Читать»;
+  that is why the Read shelf comes from mishka-knizhka.ru.
+- **The Read-shelf recipe (2026-10-02)**, rerunnable (incremental), from this dir, `B=../lantern-content/books`:
+  `mishka.py <url> $B/<dir> "<Title>" [flags]` for each of —
+  `/skazki-pushkina/` pushkin · `/russkie-narodnye-skazki/` russkie-narodnye `--split` (subsection collections'
+  `node.yaml` written by hand: Про животных / Волшебные / Бытовые) · `/skazki-suteeva/` suteev ·
+  `/stihi-chukovskogo/` + `/skazki-chukovskogo/` chukovsky · `/skazki-andersena/` andersen · `/skazki-bratev-grimm/` grimm ·
+  `/skazki-sharlya-perro/` perrault · `/skazki-kiplinga/` kipling · `/rasskazy-nosova/` nosov · `/rasskazy-dragunskogo/`
+  dragunsky · `/skazki-bianki/` bianki · `/skazki-marshaka/` marshak · `/skazki-uspenskogo/` uspensky · `/skazki-kozlova/`
+  kozlov · `/skazki-zahodera/` zahoder · `/skazki-mihalkova/` mihalkov · `/skazki-shvarca/` shvarc · `/rasskazy-tolstogo-l-n/`
+  lev-tolstoy `--max-chars 15000` · `/rasskazy-ushinskogo/` ushinsky · `/skazki-odoevskogo/` odoevsky · `/skazki-bazhova/` bazhov;
+  single tale pages → `konek-gorbunok`, `alenkij-cvetochek`, `buratino`, `volkov/{volshebnik-izumrudnogo-goroda,urfin-dzhjus}`
+  (`volkov/node.yaml` by hand). Then `group:` on each child of `books/` (see `CLAUDE.md`). 7 lists in parallel ≈ 1.5 h.
+  Probed and absent (404): Мамин-Сибиряк, Пришвин, Гаршин, Токмакова, Даль, Родари, Линдгрен, Милн.

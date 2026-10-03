@@ -3,7 +3,7 @@
 **Where things are since 2026-09-11 (Lantern migration).** These scripts are the *tools*; the
 *data* is the package `~/Documents/projects-my/lantern-content/books/hobbit/` (not in git):
 `node.yaml` (collection) + `cover.jpg`, then one **story** dir per chapter `NN/` with
-`node.yaml` (title, label, `hidden: true` for ch. 10 until it has pictures), `cover.jpg`
+`node.yaml` (title, label, `hidden: true` for a chapter until it has pictures — none hidden since 2026-09-16), `cover.jpg`
 (= first scene), `text.json`, `scenes.json`, `img/<slug>.{png,jpg}`. `condense.py` writes
 `src/condensed.json`; `export.py` splits it into the `NN/` dirs (never overwrites an existing
 `node.yaml`). `src/` also holds `chapters.full.json`, `img-old/` (rejected pictures), the
