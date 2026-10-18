@@ -1,4 +1,4 @@
-CONTENT ?= $(HOME)/Documents/projects/personal/lantern-content
+CONTENT ?= $(HOME)/Documents/projects/askolesov/lantern-content
 NODE    ?= sidequest-k3s
 REMOTE  ?= /srv/lantern/content
 IMAGE   ?= ghcr.io/askolesov/lantern

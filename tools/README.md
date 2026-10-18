@@ -17,7 +17,7 @@ package format in `docs/specs/2026-09-11-lantern-design.md` §2. Python lives on
 
 Requirements: `brew install yt-dlp ffmpeg`, Python 3 with `Pillow`.
 
-Workflow for a new item: run the tool into `~/Documents/projects/personal/lantern-content/<collection>/<slug>/`,
+Workflow for a new item: run the tool into `~/Documents/projects/askolesov/lantern-content/<collection>/<slug>/`,
 edit `node.yaml`, then `make check sync` from this repo.
 
 ## Site notes (what we learned, 2026-09-11)

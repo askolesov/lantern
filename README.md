@@ -24,7 +24,7 @@ content/
 ## Run
 
 ```
-make run                # serves ~/Documents/projects/personal/lantern-content on http://127.0.0.1:8080
+make run                # serves ~/Documents/projects/askolesov/lantern-content on http://127.0.0.1:8080
 make check              # validates the content dir (same scanner as the server)
 make test
 ```
