@@ -8,8 +8,8 @@ one changes. No hidden memory: notes go here or in the spec.
 - **Explicit everything, one way to do one thing.** No implicit leaves, no `order:` field
   (rename dirs), cover by filename convention, type declared in `node.yaml`.
 - **A book is a collection of `story` leaves.** No book type, no chapter routes.
-- **Content is not in git.** `~/Documents/projects/askolesov/lantern-content/` is the master copy and
-  the backup; `make sync` pushes it to the node. Never generate images without being asked
+- **Content is not in git.** `~/Documents/projects/askolesov/lantern-content/` is the master copy
+  (backup: its `.archive` → nexus `@Library/lantern/`, synced by `syncing-projects/check.py --refresh`); `make sync` pushes it to the node. Never generate images without being asked
   (real money); see `tools/book/CLAUDE.md`.
 - `gofmt` + `go vet` + `go test ./...` before every commit. Templates and static assets are
   embedded; edit them under `internal/web/` and rebuild.
