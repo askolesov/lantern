@@ -2,7 +2,7 @@
 """cover.py <package-dir> "<scene prompt>"
 Generates a square cover.png/cover.jpg for a package with gpt-image-1 in the house style
 (BASE_MID from tools/book/gen_images.py). Costs real money (~$0.07): only run when asked.
-Key: export $(grep -v '^#' ~/Documents/projects-my/life/dossiers/2026-08-local-ai-hardware/.env | xargs)
+Key: export $(grep -v '^#' ~/Documents/projects/personal/life/dossiers/2026-08-local-ai-hardware/.env | xargs)
 """
 import base64, json, os, pathlib, sys, urllib.request
 

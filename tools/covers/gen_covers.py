@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate square section covers (the five root tiles) via OpenAI gpt-image-1.
-Run from the content dir: `python3 ~/Documents/projects-my/lantern/tools/covers/gen_covers.py [dir …]`
+Run from the content dir: `python3 ~/Documents/projects/personal/lantern/tools/covers/gen_covers.py [dir …]`
 (no args = every section whose cover is missing). Keys: source life/dossiers/2026-08-local-ai-hardware/.env
 first. Cost: 1024x1024 medium ≈ $0.04 per picture. Existing covers are NOT overwritten — delete first.
 

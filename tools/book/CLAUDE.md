@@ -1,7 +1,7 @@
 # Hobbit pipeline (tools/book) — status 2026-09-16: ch. 1–19 COMPLETE, whole book condensed with real BASE_MID pictures, live on the node, unhidden, every chapter now on the current rules (ch. 1–5 were the last holdouts — BASE_OLD/BASE style, ch.1-3 on the old ~10 min target, ch.1-2 pictures made against the wrong text — all re-illustrated 2026-09-16, see the table below). Three reshoots total the same day from hallucinated/wrong content, all fixed by tightening the prompt: `15_gate_wall_built` (stray Gandalf+Bilbo in what should've been an empty shot), `19_auction_chaos` (literal "AUCTION" text on a sign), `02_troll_cave_treasure` (live trolls peering in when they were already stone statues outside by that point in the story) — see the CHARS/style notes below.
 
 **Where things are since 2026-09-11 (Lantern migration).** These scripts are the *tools*; the
-*data* is the package `~/Documents/projects-my/lantern-content/books/hobbit/` (not in git):
+*data* is the package `~/Documents/projects/personal/lantern-content/books/hobbit/` (not in git):
 `node.yaml` (collection) + `cover.jpg`, then one **story** dir per chapter `NN/` with
 `node.yaml` (title, label, `hidden: true` for a chapter until it has pictures — none hidden since 2026-09-16), `cover.jpg`
 (= first scene), `text.json`, `scenes.json`, `img/<slug>.{png,jpg}`. `condense.py` writes
@@ -10,7 +10,7 @@
 pre-migration `chapter-N.html` + `build.py` as the rendering reference, `ch0N.txt`, `docs/`.
 Image slugs stay `NN_slug` in `gen_images.py`; the file lands in `NN/img/slug.png`.
 **All scripts run from the package dir:**
-`cd ~/Documents/projects-my/lantern-content/books/hobbit && python3 ~/Documents/projects-my/lantern/tools/book/condense.py && python3 …/export.py`,
+`cd ~/Documents/projects/personal/lantern-content/books/hobbit && python3 ~/Documents/projects/personal/lantern/tools/book/condense.py && python3 …/export.py`,
 pictures: `python3 …/gen_images.py 08_* …` then `python3 …/shrink.py`. There is no `build.py`
 any more: the Go server (`lantern serve`) renders `book.json` + `scenes.json` with the same
 placement algorithm (golden-tested against the old HTML, `internal/book`). Scene order and
@@ -82,7 +82,7 @@ and the target picture density. Key rules:
   `gen_images.py` now **refuses to run with no scene names** (it would have generated the 14 stale `10_*` drafts); pass names, or `--all` to mean it.
   It also prints the picture count and estimated cost before generating.
 - New images: add to `SCENES` in `gen_images.py`, then `python3 gen_images.py [scene names…]` (no args = all missing), then `python3 shrink.py`.
-  **Keys live in `~/Documents/projects-my/life/dossiers/2026-08-local-ai-hardware/.env`** (gitignored; user decision 2026-09-04): `OPENAI_API_KEY` (direct, gpt-image-1, ~$0.065/picture at medium 1536x1024 — preferred) and `OPENROUTER_API_KEY` (fallback backend in `gen_images.py`; use the `/images/generations` route, the chat route ignores size/quality and cost $0.28 for a square image). Load with `export $(grep -v '^#' <that .env> | xargs)`. Never copy a key into this folder.
+  **Keys live in `~/Documents/projects/personal/life/dossiers/2026-08-local-ai-hardware/.env`** (gitignored; user decision 2026-09-04): `OPENAI_API_KEY` (direct, gpt-image-1, ~$0.065/picture at medium 1536x1024 — preferred) and `OPENROUTER_API_KEY` (fallback backend in `gen_images.py`; use the `/images/generations` route, the chat route ignores size/quality and cost $0.28 for a square image). Load with `export $(grep -v '^#' <that .env> | xargs)`. Never copy a key into this folder.
 - Keep `BASE` + per-scene `CHARS` injection in `gen_images.py` (never list all characters in the base prompt — it produces a 'cast lineup' in every image).
 - **Style, three prefixes in `gen_images.py`, chosen per chapter via `BASE_BY_CH`:** `BASE_OLD` (ch. 1–3 and the kept old ch. 4 pictures: cute, toddler-ish — do not use), `BASE` (ch. 4–5: Alan Lee realism, user found it too dark/realistic), `BASE_MID` (ch. 6, user decision 2026-09-08: "a bit friendlier than the last time, not as friendly as the first wave" — Inga Moore / Pauline Baynes, warm colors, natural proportions, friendly faces). **`BASE_MID` is the confirmed house style for every new picture (user: "remember this style", 2026-09-08)** — it is `BASE_DEFAULT` in `gen_images.py`; `BASE` is pinned to ch. 4–5 only in `BASE_BY_CH`. Do not change the prefix without the user asking. Reference picture: `img/chapter-6/burglar_appears.jpg`.
 - **Style for NEW pictures, original decision (2026-09-02):** less cutesy, more realistic — classic storybook drawings for a 4-year-old, not for a 1-year-old: natural proportions, real faces, real landscapes, atmospheric light, adventurous/mysterious mood allowed. Still nothing frightening or gory. The old "friendly rounded characters, everything gentle" prefix (used for ch. 1–6) is kept in `gen_images.py` as `BASE_OLD` for reference only; do not use it for new images.
