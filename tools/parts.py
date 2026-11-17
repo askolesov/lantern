@@ -3,7 +3,8 @@
 
 Builds a Lantern collection of numbered audio leaves from a manifest:
   {"title": "Снежная королева", "cover": "<image url>", "source": "<page url>",
-   "parts": [{"title": "Зеркало и его осколки", "url": "<mp3 url>"}, …]}
+   "parts": [{"title": "Зеркало и его осколки", "url": "<mp3 url>", "cover": "<optional, per part>"}, …]}
+"url"/"cover" may be local paths (music from the own library).
 -> <dir>/node.yaml + cover.jpg, and <dir>/NN-<slug>/{<slug>.mp3, cover.jpg, node.yaml} per part.
 Existing files are skipped. Site adapters (knigavuhe.py, …) print such manifests."""
 import io, json, pathlib, re, sys, time, urllib.request
@@ -12,6 +13,7 @@ from PIL import Image
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"}
 
 def get(url, referer=None, tries=3):
+    if not url.startswith("http"): return pathlib.Path(url).read_bytes()  # local file (own library)
     h = dict(UA)
     if referer: h["Referer"] = referer
     for i in range(tries):
@@ -50,6 +52,7 @@ def main():
             mp3.write_bytes(data); print(f"ok {pd.name}: {title} {len(data)//1024} KB"); time.sleep(1)
         if not (pd / "node.yaml").exists():
             (pd / "node.yaml").write_text(f"type: audio\ntitle: {yaml_str(title)}\nfile: {mp3.name}\nsource: {p.get('source') or m.get('source', '')}\n")
+        if not (pd / "cover.jpg").exists() and p.get("cover"): square(get(p["cover"], m.get("source")), pd / "cover.jpg")
         if not (pd / "cover.jpg").exists() and cover.exists(): (pd / "cover.jpg").write_bytes(cover.read_bytes())
 
 if __name__ == "__main__":

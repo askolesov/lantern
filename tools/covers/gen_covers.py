@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate square section covers (the five root tiles) via OpenAI gpt-image-1.
+"""Generate square section covers (the root tiles) via OpenAI gpt-image-1.5.
 Run from the content dir: `python3 ~/Documents/projects/askolesov/lantern/tools/covers/gen_covers.py [dir …]`
 (no args = every section whose cover is missing). Keys: source life/dossiers/2026-08-local-ai-hardware/.env
 first. Cost: 1024x1024 medium ≈ $0.04 per picture. Existing covers are NOT overwritten — delete first.
@@ -29,6 +29,10 @@ SECTIONS = {
  "lullabies-video": "Dominant color dark teal night. A small cottage window seen from outside at night, warm light in "
                     "the glass, a sleepy cat curled on the window sill; above the roof a big smiling full moon with "
                     "closed eyes and a string of stars like a mobile; snow-free summer garden with a lantern; peaceful.",
+ "music":           "Dominant color warm rose-red. An old wind-up gramophone with a big golden flower-shaped horn stands "
+                    "on a rug, a record spinning; colorful musical notes swirl out of the horn; a small brown bear cub "
+                    "and a little white bunny dance in front of it holding paws; a toy drum and a little violin nearby; "
+                    "daytime, joyful.",
 }
 BASE_SCENE = ("A single clear subject filling the square frame, readable as a small icon. Nothing frightening. ")
 HERO = ("The one and only character is a small round brown bear cub with a red knitted scarf, friendly face, "
@@ -55,7 +59,7 @@ def gen(name, scene):
     out = pathlib.Path(name) / "cover.jpg"
     if out.exists():
         return name, "skip (exists)"
-    body = json.dumps({"model": "gpt-image-1", "prompt": BASE + BASE_SCENE + scene, "size": "1024x1024",
+    body = json.dumps({"model": "gpt-image-1.5", "prompt": BASE + BASE_SCENE + scene, "size": "1024x1024",
                        "quality": "medium", "n": 1}).encode()
     req = urllib.request.Request("https://api.openai.com/v1/images/generations", data=body,
                                  headers={"Authorization": f"Bearer {KEY}", "Content-Type": "application/json"})
