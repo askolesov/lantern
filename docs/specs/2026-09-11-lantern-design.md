@@ -215,7 +215,7 @@ for ch. 1–7, all images resolve).
     yt.sh <url> <dir>                       yt-dlp → video.mp4 (h264/aac ≤1080p, Safari-safe),
                                             cover.jpg from thumbnail, node.yaml draft
     audio.sh <file.mp3> <dir>               copies file, writes node.yaml draft
-    cover.py <dir> "<prompt>"               gpt-image-1 square cover, BASE_MID style;
+    cover.py <dir> "<prompt>"               gpt-image-1.5 square cover, BASE_MID style;
                                             key from life/dossiers/2026-08-local-ai-hardware/.env
     book/                                   the Hobbit pipeline, moved as is:
       condense.py gen_images.py shrink.py   (condensed text and scene prompts still inside

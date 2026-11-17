@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Generate storybook illustrations for chapters of The Hobbit via OpenAI gpt-image-1.
+"""Generate storybook illustrations for chapters of The Hobbit via OpenAI gpt-image-1.5.
 Usage: OPENAI_API_KEY=... python3 gen_images.py
 """
 import base64, json, os, re, sys, urllib.request, concurrent.futures, pathlib
 
-# Backends: OPENAI_API_KEY -> api.openai.com gpt-image-1 (original); otherwise OPENROUTER_API_KEY ->
+# Backends: OPENAI_API_KEY -> api.openai.com gpt-image-1.5 (original); otherwise OPENROUTER_API_KEY ->
 # openrouter.ai chat completions with an image-output model (added 2026-09-04; key lives in
 # life/dossiers/2026-08-local-ai-hardware/.env, source it before running — never copy it into this repo).
 KEY = os.environ.get("OPENAI_API_KEY"); BACKEND = "openai"
@@ -360,7 +360,7 @@ def gen(name, prompt):
     if out.exists():
         return name, "skip"
     if BACKEND == "openai":
-        body = json.dumps({"model": "gpt-image-1", "prompt": full_prompt(prompt, name),
+        body = json.dumps({"model": "gpt-image-1.5", "prompt": full_prompt(prompt, name),
                            "size": "1536x1024", "quality": "medium", "n": 1}).encode()
         req = urllib.request.Request("https://api.openai.com/v1/images/generations", data=body,
             headers={"Authorization": f"Bearer {KEY}", "Content-Type": "application/json"})

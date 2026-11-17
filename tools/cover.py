@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """cover.py <package-dir> "<scene prompt>"
-Generates a square cover.png/cover.jpg for a package with gpt-image-1 in the house style
+Generates a square cover.png/cover.jpg for a package with gpt-image-1.5 in the house style
 (BASE_MID from tools/book/gen_images.py). Costs real money (~$0.07): only run when asked.
 Key: export $(grep -v '^#' ~/Documents/projects/askolesov/life/dossiers/2026-08-local-ai-hardware/.env | xargs)
 """
@@ -16,7 +16,7 @@ def main():
         sys.exit(__doc__)
     d = pathlib.Path(sys.argv[1]); prompt = BASE_MID + sys.argv[2]
     key = os.environ.get("OPENAI_API_KEY") or sys.exit("OPENAI_API_KEY not set")
-    body = json.dumps({"model": "gpt-image-1", "prompt": prompt, "size": "1024x1024", "quality": "medium", "n": 1}).encode()
+    body = json.dumps({"model": "gpt-image-1.5", "prompt": prompt, "size": "1024x1024", "quality": "medium", "n": 1}).encode()
     req = urllib.request.Request("https://api.openai.com/v1/images/generations", data=body,
                                  headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=300) as r:

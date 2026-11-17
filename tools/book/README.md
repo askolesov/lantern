@@ -16,7 +16,7 @@
 | `ch01.txt`… | тот же текст в plain text (промежуточный) |
 | `build.py` | собирает страницы; **здесь список сцен + подписи в порядке сюжета** (словарь `scenes`, ключ = номер главы − 1) |
 | `scenes_4_10.py` | черновик сцен гл. 4–10 (prompt + подпись); уже влит в `gen_images.py`/`build.py`, хранится как образец |
-| `gen_images.py` | промпты сцен, генерирует `img/chapter-N/<slug>.png` через OpenAI `gpt-image-1` |
+| `gen_images.py` | промпты сцен, генерирует `img/chapter-N/<slug>.png` через OpenAI `gpt-image-1.5` |
 | `shrink.py` | делает `img/chapter-N/<slug>.jpg` 1152×768 q85 из png (страницы используют jpg) |
 | `img/` | `chapter-N/*.png` оригиналы 1536×1024, `*.jpg` для страниц |
 
@@ -71,7 +71,7 @@ eyes; goblins — small green-grey comical; spiders — round cartoonish big eye
 hair and beard; elves — slender, green/brown, leaf crowns; eagles — huge golden-brown noble; wolves/trolls — big,
 silly, not scary.
 
-Параметры: `model gpt-image-1`, `size 1536x1024`, `quality medium`, n=1.
+Параметры: `model gpt-image-1.5`, `size 1536x1024`, `quality medium`, n=1.
 
 > **Стоимость (реальная):** medium ≈ $0.06–0.07/картинка, low ≈ $0.02. 150 картинок medium ≈ $10.
 > Перед большим батчем — проверить лимит на аккаунте. При 429 скрипт ждёт и повторяет (до 6 раз),
